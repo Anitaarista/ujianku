@@ -298,6 +298,14 @@ export function Icon({ name, size = "md", className }: IconProps) {
 }
 ```
 
+## Integrated References (from antigravity-fullstack-hq)
+
+| Topic | File | Description |
+|-------|------|-------------|
+| Web Design Guidelines | `references/web-design-guidelines.md` | WCAG, keyboard nav, responsive layout, focus management, Core Web Vitals |
+
+---
+
 ## Best Practices
 
 1. **Establish Constraints**: Limit choices to maintain consistency

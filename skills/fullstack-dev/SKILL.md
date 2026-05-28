@@ -147,6 +147,28 @@ IMPORTANT: Use websocket/socket.io to support real-time communication. Do NOT us
 
 ---
 
+## Integrated Reference Library (from antigravity-fullstack-hq)
+
+The following reference documents have been integrated into `references/` for deep domain knowledge:
+
+| Topic | File | Description |
+|-------|------|-------------|
+| Prisma ORM | `references/prisma-workflow.md` | Schema design, migrations, queries, PostgreSQL |
+| GitHub Actions | `references/github-actions.md` | CI/CD pipelines, deploy workflows, caching |
+| React Patterns | `references/react-best-practices.md` | Components, hooks, state, performance |
+| Docker | `references/docker-patterns.md` | Multi-stage builds, compose, dev/prod |
+| Next.js App Router | `references/nextjs-app-router.md` | Server Components, Actions, routing, caching |
+| Deployment | `references/deployment-guide.md` | Vercel, Railway, Fly.io, health checks |
+| API Design | `references/api-design-patterns.md` | REST, versioning, pagination, OpenAPI |
+| Security | `references/security-checklist.md` | OWASP, input validation, XSS, rate limiting |
+| TypeScript | `references/typescript-patterns.md` | Generics, utility types, strict mode |
+| Backend (NestJS) | `references/backend-dev-guidelines.md` | Layering, DTOs, error handling, logging |
+| Auth Patterns | `references/auth-patterns.md` | JWT, Passport.js, OAuth, sessions |
+| NestJS Patterns | `references/nestjs-patterns.md` | Modules, Guards, Interceptors |
+| Git Workflow | `references/git-workflow.md` | Branching, commit conventions |
+
+---
+
 ## Styling
 
 1. Use the shadcn/ui library unless the user specifies otherwise.

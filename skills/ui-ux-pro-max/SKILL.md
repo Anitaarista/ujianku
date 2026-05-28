@@ -37,6 +37,15 @@ python3 skills/ui-ux-pro-max/scripts/design_system.py --help
 
 Prefer running it when the user wants a structured token output (ASCII-friendly).
 
+## Integrated References (from antigravity-fullstack-hq)
+
+| Topic | File | Description |
+|-------|------|-------------|
+| Tailwind Patterns | `references/tailwind-patterns.md` | v4 patterns, dark mode, design tokens, component styling |
+| Frontend Design | `references/frontend-design.md` | Visual hierarchy, typography, CVA, compound components |
+
+---
+
 ## Output Standards
 - Default to ASCII-only tokens/variables unless the project already uses Unicode.
 - Include: spacing scale, type scale, 2-3 font pair options, color tokens, component states.

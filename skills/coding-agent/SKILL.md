@@ -84,6 +84,52 @@ Only store what user explicitly asks to save.
 Request -> Plan -> Execute -> Verify -> Deliver
 ```
 
+## Integrated Reference Library (from antigravity-fullstack-hq)
+
+### Skills References (`references/`)
+
+| Topic | File | Description |
+|-------|------|-------------|
+| Brainstorming | `references/brainstorming.md` | Six Thinking Hats, HMW, Pre-Mortem, RICE |
+| Prompt Engineering | `references/prompt-engineering.md` | LLM prompt design, chain-of-thought, few-shot |
+| Software Architecture | `references/software-architecture.md` | Clean Architecture, SOLID, DDD, CQRS |
+| TDD | `references/test-driven-development.md` | Red-Green-Refactor, Vitest, mocking |
+| Webapp Testing | `references/webapp-testing.md` | Playwright, RTL, MSW, E2E patterns |
+| Code Review | `references/code-review-patterns.md` | PR review flow, priority system, feedback |
+| Systematic Debugging | `references/systematic-debugging.md` | Scientific method, stack traces, isolation |
+
+### Agent Roles (`references/agents/`)
+
+| Agent | Specialization |
+|-------|---------------|
+| Architect | System design, scalability, ADRs |
+| Backend Specialist | NestJS, API design, Prisma |
+| Code Reviewer | Quality, maintainability, patterns |
+| Database Specialist | PostgreSQL, Prisma, migrations |
+| DevOps Engineer | CI/CD, Docker, deployment |
+| Documentation Writer | READMEs, API docs, guides |
+| Frontend Specialist | React, Next.js, TypeScript |
+| Performance Optimizer | Core Web Vitals, caching, optimization |
+| Security Auditor | OWASP, input validation, auth |
+| Test Engineer | TDD, coverage, E2E |
+
+### Workflows (`references/workflows/`)
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| Brainstorm | `/brainstorm` | Explore ideas before committing |
+| Create | `/create` | Build new features from scratch |
+| Debug | `/debug` | Systematic bug investigation |
+| Enhance | `/enhance` | Refactor, optimize, cleanup |
+| Orchestrate | `/orchestrate` | Multi-agent coordination |
+| Plan | `/plan` | Task breakdown, implementation plan |
+| Preview | `/preview` | Pre-commit review checklist |
+| Status | `/status` | Progress checkpoint |
+| Test | `/test` | Generate and organize tests |
+| UI/UX Pro Max | `/ui-ux-pro-max` | Design-focused UI improvements |
+
+---
+
 ## Common Traps
 
 - **Delivering untested code** -> always verify first
