@@ -310,8 +310,25 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      final role = context.read<AuthProvider>().selectedRole;
-      if (role == 'pengawas') {
+      final user = context.read<AuthProvider>().user;
+      final userRole = user?.role.toUpperCase() ?? '';
+      
+      // Validasi: hanya SISWA dan PENGAWAS yang bisa login di mobile
+      if (userRole == 'ADMIN' || userRole == 'GURU') {
+        context.read<AuthProvider>().clearUser();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${userRole == 'ADMIN' ? 'Admin' : 'Guru'} harus login melalui website UjianKu.',
+            ),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+        return;
+      }
+      
+      // Route berdasarkan role dari API
+      if (userRole == 'PENGAWAS') {
         context.go('/pengawas');
       } else {
         context.go('/siswa');

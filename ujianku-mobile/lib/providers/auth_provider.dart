@@ -67,7 +67,6 @@ class AuthProvider with ChangeNotifier {
       final result = await _authService.login(
         email: email,
         password: password,
-        role: _selectedRole,
       );
 
       if (result.success) {
@@ -136,6 +135,14 @@ class AuthProvider with ChangeNotifier {
   /// Bersihkan error
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  /// Bersihkan user (untuk validasi role yang salah)
+  void clearUser() {
+    _user = null;
+    _isLoggedIn = false;
+    _storage.clearAll();
     notifyListeners();
   }
 }

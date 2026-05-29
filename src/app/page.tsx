@@ -2,16 +2,14 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GraduationCap, Shield, BookOpen, Eye, Lock, Mail, ArrowRight, Loader2, AlertCircle, Monitor, Smartphone } from 'lucide-react'
+import { GraduationCap, Shield, BookOpen, Eye, Lock, Mail, ArrowRight, Loader2, AlertCircle, Smartphone } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AdminDashboard } from '@/components/ujianku/admin-dashboard'
 import { GuruDashboard } from '@/components/ujianku/guru-dashboard'
-import { SiswaMobile } from '@/components/ujianku/siswa-mobile'
-import { PengawasMobile } from '@/components/ujianku/pengawas-mobile'
 
-type View = 'login' | 'ADMIN' | 'GURU' | 'SISWA' | 'PENGAWAS'
+type View = 'login' | 'ADMIN' | 'GURU'
 
 interface LoginUser {
   id: string
@@ -31,7 +29,7 @@ export default function Home() {
   const handleLogin = async (user: LoginUser, token: string) => {
     setCurrentUser(user)
     setAuthToken(token)
-    const role = user.role as 'ADMIN' | 'GURU' | 'PENGAWAS' | 'SISWA'
+    const role = user.role as 'ADMIN' | 'GURU'
     setCurrentView(role)
   }
 
@@ -78,30 +76,6 @@ export default function Home() {
           <GuruDashboard onBack={handleLogout} user={currentUser} token={authToken} />
         </motion.div>
       )}
-
-      {currentView === 'SISWA' && (
-        <motion.div
-          key="siswa"
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.3 }}
-        >
-          <SiswaMobile onBack={handleLogout} />
-        </motion.div>
-      )}
-
-      {currentView === 'PENGAWAS' && (
-        <motion.div
-          key="pengawas"
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.3 }}
-        >
-          <PengawasMobile onBack={handleLogout} />
-        </motion.div>
-      )}
     </AnimatePresence>
   )
 }
@@ -144,36 +118,6 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
       }
     } catch {
       setError('Tidak dapat terhubung ke server. Silakan coba lagi.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const quickLogin = async (role: 'admin' | 'guru') => {
-    const credentials = {
-      admin: { email: 'admin@ujianku.id', password: 'admin123' },
-      guru: { email: 'budi.santoso@ujianku.id', password: 'guru123' },
-    }
-    setEmail(credentials[role].email)
-    setPassword(credentials[role].password)
-
-    // Auto-submit
-    setError('')
-    setLoading(true)
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials[role]),
-      })
-      const data = await res.json()
-      if (data.success) {
-        onLogin(data.data.user, data.data.token)
-      } else {
-        setError('Demo login gagal. Coba seed database terlebih dahulu: /api/v1/seed')
-      }
-    } catch {
-      setError('Tidak dapat terhubung ke server.')
     } finally {
       setLoading(false)
     }
@@ -322,53 +266,6 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
                     )}
                   </Button>
                 </form>
-
-                {/* Divider */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white px-3 text-gray-500">Demo Quick Login</span>
-                  </div>
-                </div>
-
-                {/* Quick Login Buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => quickLogin('admin')}
-                    disabled={loading}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-violet-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-gray-900">Admin</p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Monitor className="w-3 h-3" />
-                        <span>Web</span>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => quickLogin('guru')}
-                    disabled={loading}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-gray-900">Guru</p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Monitor className="w-3 h-3" />
-                        <span>Web</span>
-                      </div>
-                    </div>
-                  </button>
-                </div>
 
                 {/* Mobile App Notice */}
                 <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">

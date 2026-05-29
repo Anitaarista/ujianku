@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAuth, hasRole, parsePagination, paginatedResponse } from '@/lib/auth-helper';
 
-// GET: List subjects
+// GET: List subjects with guru info
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);
@@ -44,6 +44,12 @@ export async function GET(request: NextRequest) {
               bankSoal: true,
               exams: true,
               guruSubjects: true,
+            },
+          },
+          guruSubjects: {
+            include: {
+              guru: { select: { id: true, name: true, nipNis: true } },
+              kelas: { select: { id: true, nama: true, tingkat: true } },
             },
           },
         },

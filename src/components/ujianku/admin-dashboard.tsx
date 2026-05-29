@@ -1,26 +1,24 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Users, School, BookMarked, BarChart3, Settings,
-  Bell, Search, LogOut, ChevronRight, Plus, Filter, Download,
+  Bell, Search, LogOut, ChevronRight, Plus, Download,
   TrendingUp, TrendingDown, UserPlus, MoreVertical, Edit, Trash2,
   CheckCircle, XCircle, GraduationCap, FileText, Activity,
-  Shield, Eye, Calendar, Building2
+  Shield, Eye, Calendar, Building2, Loader2, AlertCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import {
-  mockUsers, mockSekolah, mockKelas, mockMapel, mockExams,
   examActivityData, gradeDistributionData, subjectScoreData, participantTrendData,
   getStatusColor, getDifficultyColor
 } from './mock-data'
@@ -31,6 +29,43 @@ interface AdminDashboardProps {
   onBack: () => void
   user?: { id: string; name: string; email: string; role: string; avatar?: string }
   token?: string | null
+}
+
+// API Types
+interface ApiUser {
+  id: string; email: string; name: string; role: string; nipNis: string | null; phone: string | null; isActive: boolean; avatar: string | null; createdAt: string; updatedAt: string
+}
+
+interface ApiSekolah {
+  id: string; nama: string; alamat: string | null; npsn: string | null; logo: string | null; isActive: boolean; createdAt: string; _count: { kelas: number }
+}
+
+interface ApiKelas {
+  id: string; nama: string; tingkat: number; tahunAjaran: string; sekolahId: string;
+  sekolah: { id: string; nama: string; npsn: string | null }
+  waliKelas: { id: string; name: string; nipNis: string | null } | null
+  _count: { siswaKelas: number; examKelas: number; subjectTeachers: number }
+}
+
+interface ApiMapel {
+  id: string; kode: string; nama: string; kkm: number; kelompok: string | null; createdAt: string;
+  _count: { bankSoal: number; exams: number; guruSubjects: number }
+}
+
+interface ApiExam {
+  id: string; judul: string; deskripsi: string | null; mataPelajaranId: string; guruId: string;
+  durasi: number; tipeExam: string; token: string | null; status: string;
+  mataPelajaran: { id: string; nama: string; kode: string }
+  guru: { id: string; name: string }
+  examKelas: { kelas: { id: string; nama: string; tingkat: number } }[]
+  _count: { participants: number; examSoal: number }
+}
+
+interface AnalyticsData {
+  users: { total: number; admin: number; guru: number; pengawas: number; siswa: number; active: number }
+  academic: { sekolah: number; kelas: number; mataPelajaran: number }
+  exams: { total: number; draft: number; published: number; ongoing: number; completed: number; participants: number }
+  bankSoal: { total: number; byType: { type: string; count: number }[]; byDifficulty: { difficulty: string; count: number }[] }
 }
 
 const sidebarItems: { id: AdminTab; label: string; icon: React.ElementType }[] = [
@@ -51,7 +86,6 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-100">
           <button onClick={onBack} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-200/50">
@@ -64,7 +98,6 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {sidebarItems.map((item) => (
             <button
@@ -83,15 +116,14 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
           ))}
         </nav>
 
-        {/* User Profile */}
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
               {user?.name ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'AF'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Dr. Ahmad Fauzi'}</p>
-              <p className="text-xs text-gray-500">{user?.email || 'Administrator'}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Administrator'}</p>
+              <p className="text-xs text-gray-500">{user?.email || 'Admin'}</p>
             </div>
             <button onClick={onBack} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
               <LogOut className="w-4 h-4 text-gray-400" />
@@ -102,7 +134,6 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold text-gray-900">
@@ -121,13 +152,12 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
           </div>
         </header>
 
-        {/* Content */}
         <div className="flex-1 overflow-auto p-6">
-          {activeTab === 'dashboard' && <DashboardOverview />}
-          {activeTab === 'users' && <UserManagement searchQuery={searchQuery} userFilter={userFilter} setUserFilter={setUserFilter} />}
-          {activeTab === 'sekolah' && <SekolahKelas />}
-          {activeTab === 'mapel' && <MataPelajaran />}
-          {activeTab === 'analytics' && <Analytics />}
+          {activeTab === 'dashboard' && <DashboardOverview token={token} />}
+          {activeTab === 'users' && <UserManagement token={token} searchQuery={searchQuery} userFilter={userFilter} setUserFilter={setUserFilter} />}
+          {activeTab === 'sekolah' && <SekolahKelas token={token} />}
+          {activeTab === 'mapel' && <MataPelajaran token={token} />}
+          {activeTab === 'analytics' && <Analytics token={token} />}
           {activeTab === 'settings' && <SystemSettings />}
         </div>
       </main>
@@ -135,13 +165,68 @@ export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
   )
 }
 
+// ==================== API HELPER ====================
+async function apiFetch(url: string, token: string | null, options?: RequestInit) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  const res = await fetch(url, { ...options, headers })
+  return res.json()
+}
+
 // ==================== DASHBOARD OVERVIEW ====================
-function DashboardOverview() {
+function DashboardOverview({ token }: { token: string | null }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [exams, setExams] = useState<ApiExam[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const [analyticsRes, examsRes] = await Promise.all([
+          apiFetch('/api/v1/admin/analytics', token),
+          apiFetch('/api/v1/exams?limit=5', token),
+        ])
+        if (analyticsRes.success) setAnalytics(analyticsRes.data)
+        if (examsRes.success) setExams(examsRes.data?.data || [])
+      } catch {
+        setError('Gagal memuat data dashboard')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [token])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-2" />
+          <p className="text-gray-500">{error}</p>
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => window.location.reload()}>Coba Lagi</Button>
+        </div>
+      </div>
+    )
+  }
+
   const stats = [
-    { label: 'Total Siswa', value: '2,568', change: '+12.5%', trend: 'up', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Total Guru', value: '156', change: '+3.2%', trend: 'up', icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
-    { label: 'Total Ujian', value: '487', change: '+28.4%', trend: 'up', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Total Soal', value: '12,450', change: '+5.7%', trend: 'up', icon: BookMarked, color: 'text-sky-600', bg: 'bg-sky-50' },
+    { label: 'Total Siswa', value: analytics?.users.siswa ?? 0, change: '', trend: 'up' as const, icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Total Guru', value: analytics?.users.guru ?? 0, change: '', trend: 'up' as const, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
+    { label: 'Total Ujian', value: analytics?.exams.total ?? 0, change: '', trend: 'up' as const, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Total Soal', value: analytics?.bankSoal.total ?? 0, change: '', trend: 'up' as const, icon: BookMarked, color: 'text-sky-600', bg: 'bg-sky-50' },
   ]
 
   return (
@@ -155,11 +240,10 @@ function DashboardOverview() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-3xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
                     <div className="flex items-center gap-1 mt-2">
                       {stat.trend === 'up' ? <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> : <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
-                      <span className="text-xs font-medium text-emerald-600">{stat.change}</span>
-                      <span className="text-xs text-gray-400">vs bulan lalu</span>
+                      <span className="text-xs text-gray-400">Data real-time</span>
                     </div>
                   </div>
                   <div className={`w-12 h-12 ${stat.bg} rounded-xl flex items-center justify-center`}>
@@ -174,7 +258,6 @@ function DashboardOverview() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activity Chart */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Aktivitas Ujian Bulanan</CardTitle>
@@ -194,7 +277,6 @@ function DashboardOverview() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions & Status */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Aksi Cepat</CardTitle>
@@ -216,13 +298,25 @@ function DashboardOverview() {
             ))}
 
             <div className="pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-500 mb-2">Ujian Berlangsung</p>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-sm font-semibold text-gray-900">UTS Matematika XI IPA</span>
+              <p className="text-xs text-gray-500 mb-2">Status Ujian</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Berlangsung</span>
+                  <span className="font-semibold text-emerald-600">{analytics?.exams.ongoing ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Terbit</span>
+                  <span className="font-semibold text-blue-600">{analytics?.exams.published ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Draft</span>
+                  <span className="font-semibold text-amber-600">{analytics?.exams.draft ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Selesai</span>
+                  <span className="font-semibold text-gray-600">{analytics?.exams.completed ?? 0}</span>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">28 dari 34 siswa sedang mengerjakan</p>
-              <Progress value={82} className="mt-2 h-1.5" />
             </div>
           </CardContent>
         </Card>
@@ -237,34 +331,38 @@ function DashboardOverview() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Judul Ujian</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Mata Pelajaran</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Guru</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Peserta</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockExams.map((exam) => (
-                  <tr key={exam.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3 px-4 font-medium text-gray-900">{exam.judul}</td>
-                    <td className="py-3 px-4 text-gray-600">{exam.mataPelajaran}</td>
-                    <td className="py-3 px-4 text-gray-600">{exam.guru}</td>
-                    <td className="py-3 px-4 text-gray-600">{exam.totalPeserta}</td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(exam.status)}`}>
-                        {exam.status === 'ONGOING' ? 'Berlangsung' : exam.status === 'PUBLISHED' ? 'Terbit' : exam.status === 'SELESAI' ? 'Selesai' : exam.status === 'DRAFT' ? 'Draft' : exam.status}
-                      </span>
-                    </td>
+          {exams.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-8">Belum ada ujian</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Judul Ujian</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Mata Pelajaran</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Guru</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Peserta</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {exams.map((exam) => (
+                    <tr key={exam.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-3 px-4 font-medium text-gray-900">{exam.judul}</td>
+                      <td className="py-3 px-4 text-gray-600">{exam.mataPelajaran?.nama || '-'}</td>
+                      <td className="py-3 px-4 text-gray-600">{exam.guru?.name || '-'}</td>
+                      <td className="py-3 px-4 text-gray-600">{exam._count?.participants ?? 0}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(exam.status)}`}>
+                          {exam.status === 'ONGOING' ? 'Berlangsung' : exam.status === 'PUBLISHED' ? 'Terbit' : exam.status === 'SELESAI' ? 'Selesai' : exam.status === 'DRAFT' ? 'Draft' : exam.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -272,22 +370,87 @@ function DashboardOverview() {
 }
 
 // ==================== USER MANAGEMENT ====================
-function UserManagement({ searchQuery, userFilter, setUserFilter }: { searchQuery: string; userFilter: string; setUserFilter: (v: string) => void }) {
-  const filteredUsers = mockUsers.filter(u => {
-    const matchSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchFilter = userFilter === 'all' || u.role === userFilter
-    return matchSearch && matchFilter
-  })
+function UserManagement({ token, searchQuery, userFilter, setUserFilter }: { token: string | null; searchQuery: string; userFilter: string; setUserFilter: (v: string) => void }) {
+  const [users, setUsers] = useState<ApiUser[]>([])
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'GURU', nipNis: '', phone: '' })
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (userFilter !== 'all') params.set('role', userFilter)
+      if (searchQuery) params.set('search', searchQuery)
+      const res = await apiFetch(`/api/v1/admin/users?${params}`, token)
+      if (res.success) {
+        setUsers(res.data?.data || [])
+        setTotalUsers(res.data?.pagination?.total || 0)
+      }
+    } catch {
+      // silently handle
+    } finally {
+      setLoading(false)
+    }
+  }, [token, page, userFilter, searchQuery])
+
+  useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password || !newUser.role) return
+    try {
+      setSaving(true)
+      const res = await apiFetch('/api/v1/admin/users', token, {
+        method: 'POST',
+        body: JSON.stringify(newUser),
+      })
+      if (res.success) {
+        setShowAddModal(false)
+        setNewUser({ name: '', email: '', password: '', role: 'GURU', nipNis: '', phone: '' })
+        fetchUsers()
+      }
+    } catch {
+      // silently handle
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus user ini?')) return
+    try {
+      await apiFetch(`/api/v1/admin/users/${id}`, token, { method: 'DELETE' })
+      fetchUsers()
+    } catch {
+      // silently handle
+    }
+  }
+
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    try {
+      await apiFetch(`/api/v1/admin/users/${id}`, token, {
+        method: 'PUT',
+        body: JSON.stringify({ isActive: !isActive }),
+      })
+      fetchUsers()
+    } catch {
+      // silently handle
+    }
+  }
+
+  const totalPages = Math.ceil(totalUsers / 20)
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {['all', 'ADMIN', 'GURU', 'PENGAWAS', 'SISWA'].map((role) => (
             <button
               key={role}
-              onClick={() => setUserFilter(role)}
+              onClick={() => { setUserFilter(role); setPage(1) }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 userFilter === role
                   ? 'bg-violet-100 text-violet-700 shadow-sm'
@@ -300,131 +463,216 @@ function UserManagement({ searchQuery, userFilter, setUserFilter }: { searchQuer
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Ekspor</Button>
-          <Button size="sm" className="bg-violet-600 hover:bg-violet-700"><Plus className="w-4 h-4 mr-2" />Tambah User</Button>
+          <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={() => setShowAddModal(true)}>
+            <Plus className="w-4 h-4 mr-2" />Tambah User
+          </Button>
         </div>
       </div>
 
-      {/* Users Table */}
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">
-                    <div className="flex items-center gap-2"><input type="checkbox" className="rounded" /> Nama</div>
-                  </th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Email</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">NIP/NIS</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Peran</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <input type="checkbox" className="rounded" />
-                        <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                          {user.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                        </div>
-                        <span className="font-medium text-gray-900">{user.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">{user.email}</td>
-                    <td className="py-3 px-4 text-gray-600 font-mono text-xs">{user.nipNis}</td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                        user.role === 'GURU' ? 'bg-emerald-100 text-emerald-700' :
-                        user.role === 'PENGAWAS' ? 'bg-amber-100 text-amber-700' :
-                        'bg-sky-100 text-sky-700'
-                      }`}>
-                        {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        user.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                      }`}>
-                        {user.isActive ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {user.isActive ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1">
-                        <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Edit className="w-4 h-4 text-gray-500" /></button>
-                        <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Eye className="w-4 h-4 text-gray-500" /></button>
-                        <button className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4 text-red-500" /></button>
-                      </div>
-                    </td>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Nama</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Email</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">NIP/NIS</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Peran</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Pagination */}
+                </thead>
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr><td colSpan={6} className="py-8 text-center text-gray-500">Tidak ada data user</td></tr>
+                  ) : (
+                    users.map((u) => (
+                      <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                              {u.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                            </div>
+                            <span className="font-medium text-gray-900">{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">{u.email}</td>
+                        <td className="py-3 px-4 text-gray-600 font-mono text-xs">{u.nipNis || '-'}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                            u.role === 'GURU' ? 'bg-emerald-100 text-emerald-700' :
+                            u.role === 'PENGAWAS' ? 'bg-amber-100 text-amber-700' :
+                            'bg-sky-100 text-sky-700'
+                          }`}>
+                            {u.role.charAt(0) + u.role.slice(1).toLowerCase()}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button onClick={() => handleToggleActive(u.id, u.isActive)}>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                              u.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                            }`}>
+                              {u.isActive ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                              {u.isActive ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                          </button>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1">
+                            <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Edit className="w-4 h-4 text-gray-500" /></button>
+                            <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Eye className="w-4 h-4 text-gray-500" /></button>
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4 text-red-500" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-sm text-gray-500">Menampilkan {filteredUsers.length} dari {mockUsers.length} pengguna</p>
+            <p className="text-sm text-gray-500">Menampilkan {users.length} dari {totalUsers} pengguna</p>
             <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" disabled>Sebelumnya</Button>
-              <Button variant="outline" size="sm" className="bg-violet-50 text-violet-700 border-violet-200">1</Button>
-              <Button variant="outline" size="sm">2</Button>
-              <Button variant="outline" size="sm">Selanjutnya</Button>
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sebelumnya</Button>
+              <span className="px-3 text-sm text-gray-600">{page} / {totalPages || 1}</span>
+              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Selanjutnya</Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Add User Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900">Tambah User Baru</h2>
+                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">✕</button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Nama Lengkap</label>
+                  <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} placeholder="Nama lengkap" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Email</label>
+                  <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="email@sekolah.id" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Password</label>
+                  <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="Password" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Peran</label>
+                  <select className="w-full h-9 rounded-lg border border-gray-200 px-3 text-sm" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
+                    <option value="ADMIN">Admin</option>
+                    <option value="GURU">Guru</option>
+                    <option value="PENGAWAS">Pengawas</option>
+                    <option value="SISWA">Siswa</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">NIP/NIS</label>
+                  <Input value={newUser.nipNis} onChange={(e) => setNewUser({ ...newUser, nipNis: e.target.value })} placeholder="NIP atau NIS" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">No. Telepon</label>
+                  <Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} placeholder="08xxxxxxxxxx" />
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowAddModal(false)}>Batal</Button>
+                <Button className="bg-violet-600 hover:bg-violet-700" onClick={handleAddUser} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                  Simpan
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
 // ==================== SEKOLAH & KELAS ====================
-function SekolahKelas() {
+function SekolahKelas({ token }: { token: string | null }) {
+  const [sekolahList, setSekolahList] = useState<ApiSekolah[]>([])
+  const [kelasList, setKelasList] = useState<ApiKelas[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const [sekolahRes, kelasRes] = await Promise.all([
+          apiFetch('/api/v1/admin/sekolah?limit=50', token),
+          apiFetch('/api/v1/admin/kelas?limit=50', token),
+        ])
+        if (sekolahRes.success) setSekolahList(sekolahRes.data?.data || [])
+        if (kelasRes.success) setKelasList(kelasRes.data?.data || [])
+      } catch {
+        // silently handle
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [token])
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
+  }
+
   return (
     <div className="space-y-6">
-      {/* Sekolah Cards */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-gray-900">Daftar Sekolah</h2>
         <Button size="sm" className="bg-violet-600 hover:bg-violet-700"><Plus className="w-4 h-4 mr-2" />Tambah Sekolah</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {mockSekolah.map((sekolah) => (
-          <Card key={sekolah.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold">
-                  {sekolah.nama.split(' ').slice(-1)[0][0]}
+        {sekolahList.length === 0 ? (
+          <div className="col-span-3 text-center py-8 text-gray-500">Belum ada data sekolah</div>
+        ) : (
+          sekolahList.map((sekolah) => (
+            <Card key={sekolah.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold">
+                    {sekolah.nama.split(' ').slice(-1)[0][0]}
+                  </div>
+                  <Badge variant="default" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                    Aktif
+                  </Badge>
                 </div>
-                <Badge variant={sekolah.isActive ? 'default' : 'secondary'} className={sekolah.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : ''}>
-                  {sekolah.isActive ? 'Aktif' : 'Nonaktif'}
-                </Badge>
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{sekolah.nama}</h3>
-              <p className="text-xs text-gray-500 mb-3">{sekolah.alamat}</p>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5 text-gray-600">
-                  <School className="w-4 h-4" />
-                  <span>{sekolah.totalKelas} Kelas</span>
+                <h3 className="font-semibold text-gray-900 mb-1">{sekolah.nama}</h3>
+                <p className="text-xs text-gray-500 mb-3">{sekolah.alamat || '-'}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1.5 text-gray-600">
+                    <School className="w-4 h-4" />
+                    <span>{sekolah._count?.kelas ?? 0} Kelas</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-gray-600">
-                  <GraduationCap className="w-4 h-4" />
-                  <span>{sekolah.totalSiswa} Siswa</span>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <Button variant="outline" size="sm" className="flex-1">Detail</Button>
+                  <Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                <Button variant="outline" size="sm" className="flex-1">Detail</Button>
-                <Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
-      {/* Kelas Table */}
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-lg font-bold text-gray-900">Daftar Kelas</h2>
         <Button variant="outline" size="sm"><Plus className="w-4 h-4 mr-2" />Tambah Kelas</Button>
@@ -437,6 +685,7 @@ function SekolahKelas() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="text-left py-3 px-4 text-gray-500 font-medium">Nama Kelas</th>
+                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Sekolah</th>
                   <th className="text-left py-3 px-4 text-gray-500 font-medium">Tingkat</th>
                   <th className="text-left py-3 px-4 text-gray-500 font-medium">Tahun Ajaran</th>
                   <th className="text-left py-3 px-4 text-gray-500 font-medium">Wali Kelas</th>
@@ -445,26 +694,31 @@ function SekolahKelas() {
                 </tr>
               </thead>
               <tbody>
-                {mockKelas.map((kelas) => (
-                  <tr key={kelas.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{kelas.nama}</td>
-                    <td className="py-3 px-4 text-gray-600">Kelas {kelas.tingkat}</td>
-                    <td className="py-3 px-4 text-gray-600">{kelas.tahunAjaran}</td>
-                    <td className="py-3 px-4 text-gray-600">{kelas.waliKelas}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Progress value={(kelas.totalSiswa / 40) * 100} className="w-16 h-1.5" />
-                        <span className="text-gray-600">{kelas.totalSiswa}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1">
-                        <button className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit className="w-4 h-4 text-gray-500" /></button>
-                        <button className="p-1.5 hover:bg-gray-100 rounded-lg"><MoreVertical className="w-4 h-4 text-gray-500" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {kelasList.length === 0 ? (
+                  <tr><td colSpan={7} className="py-8 text-center text-gray-500">Belum ada data kelas</td></tr>
+                ) : (
+                  kelasList.map((kelas) => (
+                    <tr key={kelas.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                      <td className="py-3 px-4 font-medium text-gray-900">{kelas.nama}</td>
+                      <td className="py-3 px-4 text-gray-600">{kelas.sekolah?.nama || '-'}</td>
+                      <td className="py-3 px-4 text-gray-600">Kelas {kelas.tingkat}</td>
+                      <td className="py-3 px-4 text-gray-600">{kelas.tahunAjaran}</td>
+                      <td className="py-3 px-4 text-gray-600">{kelas.waliKelas?.name || '-'}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Progress value={(kelas._count?.siswaKelas / 40) * 100} className="w-16 h-1.5" />
+                          <span className="text-gray-600">{kelas._count?.siswaKelas ?? 0}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1">
+                          <button className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit className="w-4 h-4 text-gray-500" /></button>
+                          <button className="p-1.5 hover:bg-gray-100 rounded-lg"><MoreVertical className="w-4 h-4 text-gray-500" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -475,7 +729,29 @@ function SekolahKelas() {
 }
 
 // ==================== MATA PELAJARAN ====================
-function MataPelajaran() {
+function MataPelajaran({ token }: { token: string | null }) {
+  const [mapelList, setMapelList] = useState<ApiMapel[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const res = await apiFetch('/api/v1/admin/mata-pelajaran?limit=50', token)
+        if (res.success) setMapelList(res.data?.data || [])
+      } catch {
+        // silently handle
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [token])
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -487,61 +763,89 @@ function MataPelajaran() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockMapel.map((mapel) => (
-          <Card key={mapel.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white ${
-                    mapel.kelompok === 'Wajib' ? 'bg-gradient-to-br from-violet-400 to-purple-500' : 'bg-gradient-to-br from-amber-400 to-orange-500'
-                  }`}>
-                    {mapel.kode.slice(0, 2)}
+        {mapelList.length === 0 ? (
+          <div className="col-span-2 text-center py-8 text-gray-500">Belum ada data mata pelajaran</div>
+        ) : (
+          mapelList.map((mapel) => (
+            <Card key={mapel.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white ${
+                      mapel.kelompok === 'Wajib' ? 'bg-gradient-to-br from-violet-400 to-purple-500' : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                    }`}>
+                      {mapel.kode.slice(0, 2)}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{mapel.nama}</h3>
+                      <p className="text-xs text-gray-500">Kode: {mapel.kode}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{mapel.nama}</h3>
-                    <p className="text-xs text-gray-500">Kode: {mapel.kode}</p>
+                  <Badge variant="outline" className={mapel.kelompok === 'Wajib' ? 'border-violet-200 text-violet-700' : 'border-amber-200 text-amber-700'}>
+                    {mapel.kelompok || 'Umum'}
+                  </Badge>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">KKM</span>
+                    <span className="font-semibold text-gray-900">{mapel.kkm}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Jumlah Soal</span>
+                    <span className="text-gray-700 font-medium">{mapel._count?.bankSoal ?? 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Jumlah Ujian</span>
+                    <span className="text-gray-700 font-medium">{mapel._count?.exams ?? 0}</span>
                   </div>
                 </div>
-                <Badge variant="outline" className={mapel.kelompok === 'Wajib' ? 'border-violet-200 text-violet-700' : 'border-amber-200 text-amber-700'}>
-                  {mapel.kelompok}
-                </Badge>
-              </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">KKM</span>
-                  <span className="font-semibold text-gray-900">{mapel.kkm}</span>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <Button variant="outline" size="sm" className="flex-1">Detail</Button>
+                  <Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Guru Pengampu</span>
-                  <span className="text-gray-700 font-medium">{mapel.guru}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                <Button variant="outline" size="sm" className="flex-1">Detail</Button>
-                <Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button>
-                <Button variant="outline" size="sm"><UserPlus className="w-4 h-4" /></Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   )
 }
 
 // ==================== ANALYTICS ====================
-function Analytics() {
+function Analytics({ token }: { token: string | null }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const res = await apiFetch('/api/v1/admin/analytics', token)
+        if (res.success) setAnalytics(res.data)
+      } catch {
+        // silently handle
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [token])
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
+  }
+
   return (
     <div className="space-y-6">
-      {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Rata-rata Nilai', value: '76.8', icon: BarChart3, color: 'text-emerald-600 bg-emerald-50' },
-          { label: 'Passing Rate', value: '82%', icon: TrendingUp, color: 'text-violet-600 bg-violet-50' },
-          { label: 'Ujian Selesai', value: '423', icon: CheckCircle, color: 'text-amber-600 bg-amber-50' },
-          { label: 'Pelanggaran', value: '47', icon: Shield, color: 'text-red-600 bg-red-50' },
+          { label: 'Total Siswa', value: analytics?.users.siswa ?? 0, icon: GraduationCap, color: 'text-emerald-600 bg-emerald-50' },
+          { label: 'Total Guru', value: analytics?.users.guru ?? 0, icon: Users, color: 'text-violet-600 bg-violet-50' },
+          { label: 'Ujian Selesai', value: analytics?.exams.completed ?? 0, icon: CheckCircle, color: 'text-amber-600 bg-amber-50' },
+          { label: 'Total Soal', value: analytics?.bankSoal.total ?? 0, icon: BookMarked, color: 'text-red-600 bg-red-50' },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-4 flex items-center gap-4">
@@ -550,16 +854,14 @@ function Analytics() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Grade Distribution */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -584,7 +886,6 @@ function Analytics() {
           </CardContent>
         </Card>
 
-        {/* Subject Score Comparison */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Rata-rata Nilai per Mata Pelajaran</CardTitle>
@@ -603,7 +904,6 @@ function Analytics() {
         </Card>
       </div>
 
-      {/* Participant Trend */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Tren Partisipasi Mingguan</CardTitle>
@@ -624,7 +924,6 @@ function Analytics() {
         </CardContent>
       </Card>
 
-      {/* Per-Class Analysis */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Analisis per Kelas</CardTitle>
@@ -676,7 +975,6 @@ function Analytics() {
 function SystemSettings() {
   return (
     <div className="space-y-6 max-w-3xl">
-      {/* General Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Pengaturan Umum</CardTitle>
@@ -699,7 +997,6 @@ function SystemSettings() {
         </CardContent>
       </Card>
 
-      {/* Exam Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Pengaturan Ujian Default</CardTitle>
@@ -721,7 +1018,6 @@ function SystemSettings() {
         </CardContent>
       </Card>
 
-      {/* Notification Templates */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Template Notifikasi</CardTitle>

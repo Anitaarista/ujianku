@@ -129,49 +129,52 @@ class ApiService {
   ApiResponse _handleResponse(http.Response response) {
     try {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final success = data['success'] == true;
 
       switch (response.statusCode) {
         case 200:
         case 201:
           return ApiResponse(
-            success: true,
+            success: success,
             data: data,
-            message: data['message'] as String? ?? 'Berhasil',
+            message: data['error']?['message'] as String? ?? 
+                     data['message'] as String? ?? 
+                     (success ? 'Berhasil' : 'Gagal'),
             statusCode: response.statusCode,
           );
         case 400:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Permintaan tidak valid',
+            message: data['error']?['message'] as String? ?? 'Permintaan tidak valid',
             statusCode: response.statusCode,
           );
         case 401:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Tidak terautentikasi',
+            message: data['error']?['message'] as String? ?? 'Tidak terautentikasi',
             statusCode: response.statusCode,
           );
         case 403:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Akses ditolak',
+            message: data['error']?['message'] as String? ?? 'Akses ditolak',
             statusCode: response.statusCode,
           );
         case 404:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Data tidak ditemukan',
+            message: data['error']?['message'] as String? ?? 'Data tidak ditemukan',
             statusCode: response.statusCode,
           );
         case 422:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Data tidak valid',
+            message: data['error']?['message'] as String? ?? 'Data tidak valid',
             statusCode: response.statusCode,
             errors: data['errors'] as Map<String, dynamic>?,
           );
@@ -179,14 +182,14 @@ class ApiService {
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Kesalahan server',
+            message: data['error']?['message'] as String? ?? 'Kesalahan server',
             statusCode: response.statusCode,
           );
         default:
           return ApiResponse(
             success: false,
             data: data,
-            message: data['message'] as String? ?? 'Terjadi kesalahan',
+            message: data['error']?['message'] as String? ?? 'Terjadi kesalahan',
             statusCode: response.statusCode,
           );
       }

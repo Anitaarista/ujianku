@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
+        // Nested format for admin dashboard
         users: {
           total: totalUsers,
           admin: totalAdmin,
@@ -165,6 +166,18 @@ export async function GET(request: NextRequest) {
           questionsCreated: recentQuestions,
           violationsReported: recentViolations,
         },
+        // Flat format for compatibility
+        totalSiswa,
+        totalGuru,
+        totalPengawas,
+        totalAdmin,
+        totalUjian: totalExams,
+        totalSoal: totalBankSoal,
+        totalKelas,
+        totalSekolah,
+        ujianAktif: ongoingExams + publishedExams,
+        ujianDraft: draftExams,
+        ujianSelesai: completedExams,
       },
     });
   } catch (error) {

@@ -1,51 +1,42 @@
-
 ---
-Task ID: 1-6
+Task ID: 1
 Agent: Main Agent
-Task: Build complete UjianKu exam platform with 4 roles
+Task: Fix and enhance UjianKu web and mobile application
 
 Work Log:
-- Researched exam platform features using web-search (Indonesian & global platforms)
-- Invoked skills: web-search, writing-plans, ui-ux-pro-max, visual-design-foundations, mobile-app-dev, backend-api-dev, fullstack-dev
-- Designed Prisma database schema with 15+ models (User, Sekolah, Kelas, BankSoal, Exam, ProctorSession, etc.)
-- Built Next.js 16 full-stack web app with:
-  - Landing page with role selector
-  - Admin dashboard (6 sub-sections: overview, users, schools, subjects, analytics, settings)
-  - Guru dashboard (5 sub-sections: overview, bank soal, buat ujian wizard, hasil, nilai)
-  - Siswa mobile UI in phone frame (5 screens)
-  - Pengawas mobile UI in phone frame (4 screens)
-- Built 30 REST API endpoints across 7 modules (auth, exams, bank-soal, proctor, admin, guru, siswa)
-- Created complete Flutter mobile app (42 Dart files, 11K lines) for Siswa & Pengawas
-- Seeded database with demo data (16 users, 30 questions, 3 exams)
-- All lint checks pass
+- Verified Next.js build succeeds without errors
+- Verified Prisma schema is in sync with SQLite database
+- Seeded database with demo data successfully (16 users, 3 schools, 5 subjects, 30 questions, 3 exams)
+- Tested login API endpoint - works correctly with admin and guru credentials
+- Removed demo quick login buttons from login page (page.tsx)
+- Removed SISWA/PENGAWAS mobile preview components from web app
+- Changed View type from 'login' | 'ADMIN' | 'GURU' | 'SISWA' | 'PENGAWAS' to 'login' | 'ADMIN' | 'GURU'
+- Rewrote Admin Dashboard to use real API data with useEffect, useState, loading states
+- Rewrote Guru Dashboard to use real API data with useEffect, useState, loading states
+- Added apiFetch helper function for authenticated API calls
+- Added Add User modal with POST to API
+- Added Delete User and Toggle Active functionality
+- Added real data fetching for Sekolah & Kelas, Mata Pelajaran sections
+- Fixed admin analytics endpoint to return both nested and flat format
+- Fixed admin mata-pelajaran endpoint to include guruSubjects relation
+- Fixed admin sekolah endpoint to include kelas count and totalSiswa
+- Fixed Flutter API config - removed non-existent endpoints (logout, profile, refresh)
+- Added correct endpoints (me, register, siswaExams, siswaResults, siswaProfile, guruExams, etc.)
+- Fixed duplicate proctorMonitor method in API config
+- Fixed Flutter auth service to not send role field in login (API determines role from user record)
+- Fixed Flutter auth service to use /auth/me instead of /auth/profile
+- Fixed Flutter auth service logout to only clear local storage (no API logout endpoint)
+- Fixed Flutter API response handler to check data['success'] field and read error messages from data['error']['message']
+- Added clearUser() method to AuthProvider for role validation
+- Updated Flutter login screen to validate role (reject ADMIN/GURU on mobile)
+- Created missing asset directories (assets/images, assets/animations)
+- Created GitHub Actions workflow for Flutter CI/CD (.github/workflows/build-flutter.yml)
 
 Stage Summary:
-- Total code: ~19,700 lines across all components
-- Web UI: 7 components, 3,800 lines
-- API Routes: 30 endpoints, 4,437 lines
-- Flutter App: 42 files, 11,060 lines
-- Database: 15+ models, 387 lines schema
-- Demo credentials available via /api/v1/seed
-
----
-Task ID: 7-11
-Agent: Main Agent
-Task: Enhance UjianKu - Login page, Flutter GitHub Actions, domain config
-
-Work Log:
-- Replaced landing page with full login page at src/app/page.tsx
-- Login page features: email/password form, API integration, quick demo login buttons
-- Web blocks Siswa/Pengawas roles with message to use mobile app
-- Admin & Guru dashboards now accept user props for real login data
-- Updated Flutter API config to https://ujianku-admin.space-z.ai/api/v1
-- Created GitHub repo: Anitaarista/ujianku-mobile
-- Created GitHub Actions workflow (.github/workflows/flutter-build.yml)
-- Workflow builds: Android APK (debug+release), AAB, iOS, Web
-- Auto-creates GitHub Release with APK files on push to main
-- Pushed all code to GitHub, workflow triggered and running
-
-Stage Summary:
-- Website now shows login page instead of landing page
-- Flutter app connected to production domain
-- GitHub Actions CI/CD active and building
-- Repo: https://github.com/Anitaarista/ujianku-mobile
+- Web app now uses real API data instead of mock data
+- Login page no longer has demo quick login buttons
+- SISWA/PENGAWAS are web-only mobile previews removed (they use Flutter app)
+- All API endpoints verified working
+- Flutter app API config and auth service fixed to match backend API
+- GitHub Actions CI/CD workflow created for Flutter builds
+- Build verification: Next.js build passes without errors

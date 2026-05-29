@@ -12,14 +12,13 @@ class AuthService {
   Future<AuthResult> login({
     required String email,
     required String password,
-    required String role,
+    String? role,
   }) async {
     final response = await _api.post(
       ApiConfig.login,
       body: {
         'email': email,
         'password': password,
-        'role': role,
       },
     );
 
@@ -35,8 +34,9 @@ class AuthService {
       final user = User.fromJson(userData);
       await _storage.saveUser(user);
 
-      // Simpan role
-      await _storage.saveRole(role);
+      // Simpan role dari data user yang dikembalikan API
+      final userRole = user.role.toLowerCase();
+      await _storage.saveRole(userRole);
 
       return AuthResult(
         success: true,
@@ -54,11 +54,7 @@ class AuthService {
 
   /// Logout dan hapus sesi
   Future<void> logout() async {
-    try {
-      await _api.post(ApiConfig.logout);
-    } catch (_) {
-      // Abaikan error saat logout API, tetap hapus data lokal
-    }
+    // Hapus data lokal saja (API tidak punya endpoint logout)
     await _storage.clearAll();
   }
 
@@ -69,7 +65,7 @@ class AuthService {
     if (localUser != null) return localUser;
 
     // Jika tidak ada, ambil dari API
-    final response = await _api.get(ApiConfig.profile);
+    final response = await _api.get(ApiConfig.me);
     if (response.success && response.body != null) {
       final user = User.fromJson(response.body as Map<String, dynamic>);
       await _storage.saveUser(user);
@@ -80,7 +76,7 @@ class AuthService {
 
   /// Memperbarui profil pengguna
   Future<AuthResult> updateProfile({required Map<String, dynamic> data}) async {
-    final response = await _api.put(ApiConfig.profile, body: data);
+    final response = await _api.put('/siswa/profile', body: data);
 
     if (response.success && response.body != null) {
       final user = User.fromJson(response.body as Map<String, dynamic>);
@@ -109,17 +105,10 @@ class AuthService {
     return await _storage.getRole();
   }
 
-  /// Memperbarui token
+  /// Memperbarui token (re-login)
   Future<bool> refreshToken() async {
-    final response = await _api.post(ApiConfig.refreshToken);
-    if (response.success && response.body != null) {
-      final data = response.body as Map<String, dynamic>?;
-      final newToken = data?['token'] as String? ?? '';
-      if (newToken.isNotEmpty) {
-        await _storage.saveToken(newToken);
-        return true;
-      }
-    }
+    // API tidak punya endpoint refresh token, hapus sesi dan minta login ulang
+    await _storage.clearAll();
     return false;
   }
 }

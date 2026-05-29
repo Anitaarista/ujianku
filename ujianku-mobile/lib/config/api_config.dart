@@ -12,9 +12,8 @@ class ApiConfig {
 
   /// Endpoint autentikasi
   static const String login = '/auth/login';
-  static const String logout = '/auth/logout';
-  static const String profile = '/auth/profile';
-  static const String refreshToken = '/auth/refresh';
+  static const String me = '/auth/me';
+  static const String register = '/auth/register';
 
   /// Endpoint ujian (siswa)
   static const String exams = '/exams';
@@ -27,22 +26,21 @@ class ApiConfig {
 
   /// Endpoint pengawas
   static const String proctorSessions = '/proctor/sessions';
+  static String proctorSessionDetail(String id) => '/proctor/sessions/$id';
   static String proctorMonitor(String id) => '/proctor/sessions/$id/monitor';
-  static String proctorSessionStudents(String id) =>
-      '/proctor/sessions/$id/students';
-  static const String proctorViolations = '/proctor/violations';
-  static String proctorStudentDetail(String sessionId, String studentId) =>
-      '/proctor/sessions/$sessionId/students/$studentId';
-  static String proctorWarnStudent(String sessionId, String studentId) =>
-      '/proctor/sessions/$sessionId/students/$studentId/warn';
-  static String proctorDisqualifyStudent(String sessionId, String studentId) =>
-      '/proctor/sessions/$sessionId/students/$studentId/disqualify';
-  static String proctorAllowStudent(String sessionId, String studentId) =>
-      '/proctor/sessions/$sessionId/students/$studentId/allow';
-  static String proctorReport(String sessionId) =>
-      '/proctor/sessions/$sessionId/report';
   static String proctorEndSession(String sessionId) =>
       '/proctor/sessions/$sessionId/end';
+  static const String proctorViolations = '/proctor/violations';
+
+  /// Endpoint siswa
+  static const String siswaExams = '/siswa/exams';
+  static const String siswaResults = '/siswa/results';
+  static const String siswaProfile = '/siswa/profile';
+
+  /// Endpoint guru
+  static const String guruExams = '/guru/exams';
+  static const String guruBankSoal = '/guru/bank-soal';
+  static const String guruResults = '/guru/results';
 
   /// Metode untuk memperbarui URL dasar
   static void updateBaseUrl(String newUrl) {

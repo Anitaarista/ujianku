@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAuth, hasRole, parsePagination, paginatedResponse } from '@/lib/auth-helper';
 
-// GET: List classes
+// GET: List classes with full relations
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);

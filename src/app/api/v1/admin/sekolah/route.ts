@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAuth, hasRole, parsePagination, paginatedResponse } from '@/lib/auth-helper';
 
-// GET: List schools
+// GET: List schools with student counts
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);
@@ -36,7 +36,20 @@ export async function GET(request: NextRequest) {
       db.sekolah.findMany({
         where,
         include: {
-          _count: { select: { kelas: true } },
+          _count: {
+            select: {
+              kelas: true,
+            },
+          },
+          kelas: {
+            include: {
+              _count: {
+                select: {
+                  siswaKelas: true,
+                },
+              },
+            },
+          },
         },
         skip,
         take: limit,
@@ -45,9 +58,16 @@ export async function GET(request: NextRequest) {
       db.sekolah.count({ where }),
     ]);
 
+    // Add totalSiswa to each sekolah
+    const sekolahWithStats = sekolah.map((s) => ({
+      ...s,
+      totalKelas: s._count.kelas,
+      totalSiswa: s.kelas.reduce((sum, k) => sum + k._count.siswaKelas, 0),
+    }));
+
     return NextResponse.json({
       success: true,
-      data: paginatedResponse(sekolah, total, page, limit),
+      data: paginatedResponse(sekolahWithStats, total, page, limit),
     });
   } catch (error) {
     console.error('List sekolah error:', error);
