@@ -26,3 +26,26 @@ Stage Summary:
 - Flutter App: 42 files, 11,060 lines
 - Database: 15+ models, 387 lines schema
 - Demo credentials available via /api/v1/seed
+
+---
+Task ID: 7-11
+Agent: Main Agent
+Task: Enhance UjianKu - Login page, Flutter GitHub Actions, domain config
+
+Work Log:
+- Replaced landing page with full login page at src/app/page.tsx
+- Login page features: email/password form, API integration, quick demo login buttons
+- Web blocks Siswa/Pengawas roles with message to use mobile app
+- Admin & Guru dashboards now accept user props for real login data
+- Updated Flutter API config to https://ujianku-admin.space-z.ai/api/v1
+- Created GitHub repo: Anitaarista/ujianku-mobile
+- Created GitHub Actions workflow (.github/workflows/flutter-build.yml)
+- Workflow builds: Android APK (debug+release), AAB, iOS, Web
+- Auto-creates GitHub Release with APK files on push to main
+- Pushed all code to GitHub, workflow triggered and running
+
+Stage Summary:
+- Website now shows login page instead of landing page
+- Flutter app connected to production domain
+- GitHub Actions CI/CD active and building
+- Repo: https://github.com/Anitaarista/ujianku-mobile

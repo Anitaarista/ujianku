@@ -30,6 +30,8 @@ type GuruTab = 'dashboard' | 'bank-soal' | 'buat-ujian' | 'hasil-ujian' | 'nilai
 
 interface GuruDashboardProps {
   onBack: () => void
+  user?: { id: string; name: string; email: string; role: string; avatar?: string }
+  token?: string | null
 }
 
 const sidebarItems: { id: GuruTab; label: string; icon: React.ElementType }[] = [
@@ -40,7 +42,7 @@ const sidebarItems: { id: GuruTab; label: string; icon: React.ElementType }[] = 
   { id: 'nilai', label: 'Nilai & Rapor', icon: Award },
 ]
 
-export function GuruDashboard({ onBack }: GuruDashboardProps) {
+export function GuruDashboard({ onBack, user, token }: GuruDashboardProps) {
   const [activeTab, setActiveTab] = useState<GuruTab>('dashboard')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -81,11 +83,11 @@ export function GuruDashboard({ onBack }: GuruDashboardProps) {
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              SN
+              {user?.name ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'SN'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">Siti Nurhaliza, S.Pd</p>
-              <p className="text-xs text-gray-500">Guru Matematika</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Siti Nurhaliza, S.Pd'}</p>
+              <p className="text-xs text-gray-500">{user?.email || 'Guru Matematika'}</p>
             </div>
             <button onClick={onBack} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
               <LogOut className="w-4 h-4 text-gray-400" />

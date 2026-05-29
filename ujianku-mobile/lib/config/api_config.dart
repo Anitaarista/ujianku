@@ -1,8 +1,8 @@
 /// Konfigurasi API untuk aplikasi UjianKu
 class ApiConfig {
   /// URL dasar API backend
-  /// Ganti dengan domain yang sesuai setelah deployment
-  static String baseUrl = 'https://your-domain.com/api/v1';
+  /// Domain production UjianKu
+  static String baseUrl = 'https://ujianku-admin.space-z.ai/api/v1';
 
   /// Timeout koneksi dalam detik
   static const int connectTimeout = 15;

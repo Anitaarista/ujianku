@@ -29,6 +29,8 @@ type AdminTab = 'dashboard' | 'users' | 'sekolah' | 'mapel' | 'analytics' | 'set
 
 interface AdminDashboardProps {
   onBack: () => void
+  user?: { id: string; name: string; email: string; role: string; avatar?: string }
+  token?: string | null
 }
 
 const sidebarItems: { id: AdminTab; label: string; icon: React.ElementType }[] = [
@@ -40,7 +42,7 @@ const sidebarItems: { id: AdminTab; label: string; icon: React.ElementType }[] =
   { id: 'settings', label: 'Pengaturan', icon: Settings },
 ]
 
-export function AdminDashboard({ onBack }: AdminDashboardProps) {
+export function AdminDashboard({ onBack, user, token }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [userFilter, setUserFilter] = useState<string>('all')
@@ -85,11 +87,11 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              AF
+              {user?.name ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'AF'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">Dr. Ahmad Fauzi</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Dr. Ahmad Fauzi'}</p>
+              <p className="text-xs text-gray-500">{user?.email || 'Administrator'}</p>
             </div>
             <button onClick={onBack} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
               <LogOut className="w-4 h-4 text-gray-400" />
