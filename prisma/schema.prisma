@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// UjianKu - Platform Ujian Online
+// Database Schema
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +10,378 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== USER & AUTH ====================
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
+  password  String
+  name      String
+  role      Role     @default(SISWA)
+  avatar    String?
+  nipNis    String?  // NIP untuk guru, NIS untuk siswa
+  phone     String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  guruSubjects     SubjectTeacher[]
+  examCreators     Exam[]            @relation("ExamCreator")
+  examParticipants ExamParticipant[]
+  proctorSessions  ProctorSession[]
+  notifications    Notification[]
+  waliKelasOf      Kelas?            @relation("WaliKelas")
+  siswaKelas       SiswaKelas[]
+  bankSoal         BankSoal[]
+  proctorViolations ProctorViolation[]
+
+  @@map("users")
 }
 
-model Post {
+enum Role {
+  ADMIN
+  GURU
+  PENGAWAS
+  SISWA
+}
+
+// ==================== ACADEMIC STRUCTURE ====================
+
+model Sekolah {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  nama      String
+  alamat    String?
+  logo      String?
+  npsn      String?  @unique
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  kelas     Kelas[]
+
+  @@map("sekolah")
+}
+
+model Kelas {
+  id        String   @id @default(cuid())
+  nama      String   // e.g. "X IPA 1", "XII IPS 3"
+  tingkat   Int      // 10, 11, 12
+  tahunAjaran String // e.g. "2024/2025"
+  sekolahId String
+  waliKelasId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sekolah         Sekolah        @relation(fields: [sekolahId], references: [id])
+  waliKelas       User?          @relation("WaliKelas", fields: [waliKelasId], references: [id])
+  siswaKelas      SiswaKelas[]
+  examKelas       ExamKelas[]
+  subjectTeachers SubjectTeacher[]
+  proctorSessions ProctorSession[]
+
+  @@map("kelas")
+}
+
+model SiswaKelas {
+  id        String   @id @default(cuid())
+  siswaId   String
+  kelasId   String
+  tahunAjaran String
+  createdAt DateTime @default(now())
+
+  siswa     User    @relation(fields: [siswaId], references: [id])
+  kelas     Kelas   @relation(fields: [kelasId], references: [id])
+
+  @@unique([siswaId, kelasId, tahunAjaran])
+  @@map("siswa_kelas")
+}
+
+model MataPelajaran {
+  id        String   @id @default(cuid())
+  kode      String   @unique
+  nama      String   // e.g. "Matematika", "Bahasa Indonesia"
+  kkm       Int      @default(75)
+  kelompok  String?  // e.g. "Wajib", "Peminatan"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guruSubjects  SubjectTeacher[]
+  bankSoal      BankSoal[]
+  exams         Exam[]
+
+  @@map("mata_pelajaran")
+}
+
+model SubjectTeacher {
+  id              String   @id @default(cuid())
+  guruId          String
+  mataPelajaranId String
+  kelasId         String
+  tahunAjaran     String
+  createdAt       DateTime @default(now())
+
+  guru           User           @relation(fields: [guruId], references: [id])
+  mataPelajaran  MataPelajaran  @relation(fields: [mataPelajaranId], references: [id])
+  kelas          Kelas          @relation(fields: [kelasId], references: [id])
+
+  @@unique([guruId, mataPelajaranId, kelasId, tahunAjaran])
+  @@map("subject_teacher")
+}
+
+// ==================== BANK SOAL ====================
+
+model BankSoal {
+  id              String   @id @default(cuid())
+  mataPelajaranId String
+  guruId          String
+  tipeSoal        TipeSoal @default(PILIHAN_GANDA)
+  tingkatKesulitan TingkatKesulitan @default(SEDANG)
+  pertanyaan      String
+  opsiA           String?
+  opsiB           String?
+  opsiC           String?
+  opsiD           String?
+  opsiE           String?
+  jawabanBenar    String?  // A, B, C, D, E untuk PG; text untuk essay
+  pembahasan      String?
+  poin            Int      @default(1)
+  gambar          String?  // URL gambar soal
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mataPelajaran   MataPelajaran @relation(fields: [mataPelajaranId], references: [id])
+  guru            User          @relation(fields: [guruId], references: [id])
+  examSoal        ExamSoal[]
+  jawaban         Jawaban[]
+
+  @@map("bank_soal")
+}
+
+enum TipeSoal {
+  PILIHAN_GANDA
+  ESSAY
+  BENAR_SALAH
+  JAWABAN_SINGKAT
+  MENJODOKKAN
+}
+
+enum TingkatKesulitan {
+  MUDAH
+  SEDANG
+  SULIT
+}
+
+// ==================== EXAM ====================
+
+model Exam {
+  id              String   @id @default(cuid())
+  judul           String
+  deskripsi       String?
+  mataPelajaranId String
+  guruId          String
+  durasi          Int      // dalam menit
+  tipeExam        TipeExam @default(UTS)
+  token           String?  // token untuk masuk ujian
+  status          ExamStatus @default(DRAFT)
+  tanggalMulai    DateTime
+  tanggalSelesai  DateTime
+  acakSoal        Boolean  @default(true)
+  acakOpsi        Boolean  @default(true)
+  showResult      Boolean  @default(false)  // tampilkan hasil langsung
+  antiCheat       Boolean  @default(true)
+  maxAttempt      Int      @default(1)
+  passingGrade    Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mataPelajaran   MataPelajaran    @relation(fields: [mataPelajaranId], references: [id])
+  guru            User             @relation("ExamCreator", fields: [guruId], references: [id])
+  examSoal        ExamSoal[]
+  examKelas       ExamKelas[]
+  participants    ExamParticipant[]
+  proctorSessions ProctorSession[]
+
+  @@map("exams")
+}
+
+enum TipeExam {
+  UTS
+  UAS
+  QUIZ
+  TUGAS
+  TRYOUT
+  PRAKTIKUM
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  SELESAI
+  ARSIP
+}
+
+model ExamSoal {
+  id          String   @id @default(cuid())
+  examId      String
+  bankSoalId  String
+  urutan      Int
+  createdAt   DateTime @default(now())
+
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  bankSoal    BankSoal @relation(fields: [bankSoalId], references: [id])
+
+  @@unique([examId, bankSoalId])
+  @@map("exam_soal")
+}
+
+model ExamKelas {
+  id        String   @id @default(cuid())
+  examId    String
+  kelasId   String
+  createdAt DateTime @default(now())
+
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  kelas     Kelas    @relation(fields: [kelasId], references: [id])
+
+  @@unique([examId, kelasId])
+  @@map("exam_kelas")
+}
+
+// ==================== EXAM PARTICIPATION ====================
+
+model ExamParticipant {
+  id          String   @id @default(cuid())
+  examId      String
+  siswaId     String
+  status      ParticipantStatus @default(TERDAFTAR)
+  mulaiPada   DateTime?
+  selesaiPada DateTime?
+  durasi      Int?     // durasi pengerjaan dalam detik
+  nilai       Float?
+  nilaiEssay  Float?
+  totalNilai  Float?
+  attempt     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exam        Exam     @relation(fields: [examId], references: [id])
+  siswa       User     @relation(fields: [siswaId], references: [id])
+  jawaban     Jawaban[]
+
+  @@unique([examId, siswaId, attempt])
+  @@map("exam_participants")
+}
+
+enum ParticipantStatus {
+  TERDAFTAR
+  MULAI
+  SELESAI
+  TIMEOUT
+  DISKUALIFIKASI
+}
+
+model Jawaban {
+  id              String   @id @default(cuid())
+  participantId   String
+  bankSoalId      String
+  jawaban         String?
+  isCorrect       Boolean?
+  poin            Int      @default(0)
+  waktuJawab      DateTime?
+  createdAt       DateTime @default(now())
+
+  participant     ExamParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  bankSoal        BankSoal       @relation(fields: [bankSoalId], references: [id])
+
+  @@unique([participantId, bankSoalId])
+  @@map("jawaban")
+}
+
+// ==================== PROCTORING ====================
+
+model ProctorSession {
+  id              String   @id @default(cuid())
+  examId          String
+  pengawasId      String
+  kelasId         String
+  status          ProctorStatus @default(AKTIF)
+  catatan         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  exam            Exam     @relation(fields: [examId], references: [id])
+  pengawas        User     @relation(fields: [pengawasId], references: [id])
+  kelas           Kelas    @relation(fields: [kelasId], references: [id])
+  violations      ProctorViolation[]
+
+  @@map("proctor_sessions")
+}
+
+enum ProctorStatus {
+  AKTIF
+  SELESAI
+  DIBATALKAN
+}
+
+model ProctorViolation {
+  id              String   @id @default(cuid())
+  sessionId       String
+  siswaId         String
+  tipe            ViolationType
+  deskripsi       String
+  screenshot      String?  // URL screenshot bukti
+  waktu           DateTime @default(now())
+
+  session         ProctorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  siswa           User          @relation(fields: [siswaId], references: [id])
+
+  @@map("proctor_violations")
+}
+
+enum ViolationType {
+  TAB_SWITCH
+  COPY_PASTE
+  FACE_NOT_DETECTED
+  MULTIPLE_FACES
+  PHONE_DETECTED
+  SCREEN_RECORDING
+  LEAVE_FULLSCREEN
+  SUSPICIOUS_BEHAVIOR
+}
+
+// ==================== ANALYTICS ====================
+
+model ExamAnalytics {
+  id              String   @id @default(cuid())
+  examId          String   @unique
+  totalPeserta    Int      @default(0)
+  totalSelesai    Int      @default(0)
+  rataRata        Float?
+  nilaiTertinggi  Float?
+  nilaiTerendah   Float?
+  standarDeviasi  Float?
+  passingRate     Float?   // persentase lulus
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("exam_analytics")
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  judul     String
+  pesan     String
+  tipe      String?  // exam, result, announcement
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
