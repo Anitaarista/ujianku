@@ -7,7 +7,7 @@ import '../../models/violation.dart';
 import '../../models/proctor_session.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman daftar pelanggaran — filter & detail lengkap
+/// Halaman daftar pelanggaran — PRO-MAX UI/UX
 class ViolationListScreen extends StatefulWidget {
   const ViolationListScreen({super.key});
 
@@ -28,7 +28,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final proctor = context.read<ProctorProvider>();
       proctor.loadViolations();
-      // Also load sessions for session filter dropdown
       if (proctor.sessions.isEmpty) {
         proctor.loadSessions();
       }
@@ -70,7 +69,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
   Widget build(BuildContext context) {
     final proctorProvider = context.watch<ProctorProvider>();
 
-    // Filter violations locally by severity (since API may not support it)
     final filteredViolations = _selectedSeverity != null
         ? proctorProvider.violations
             .where((v) => v.severity == _selectedSeverity)
@@ -78,17 +76,26 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
         : proctorProvider.violations;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Daftar Pelanggaran'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Daftar Pelanggaran',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: Icon(Icons.filter_list, color: Colors.grey[700]),
             onPressed: _showFilterSheet,
             tooltip: 'Filter',
           ),
           if (_hasActiveFilters)
             IconButton(
-              icon: const Icon(Icons.filter_list_off),
+              icon: Icon(Icons.filter_list_off, color: Colors.grey[700]),
               onPressed: _clearFilters,
               tooltip: 'Hapus Filter',
             ),
@@ -101,12 +108,16 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(
+                color: Color(0xFF1A1A2E),
+                fontWeight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
                 hintText: 'Cari nama siswa...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear, color: Colors.grey[600]),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -147,7 +158,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                       label: Text(_getSeverityLabel(_selectedSeverity!)),
                       onDeleted: () {
                         setState(() => _selectedSeverity = null);
-                        // No need to re-fetch, just local filter
                       },
                       deleteIconColor: AppTheme.primary,
                       visualDensity: VisualDensity.compact,
@@ -181,18 +191,18 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
           if (filteredViolations.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              color: AppTheme.background,
+              color: Colors.grey[100],
               child: Row(
                 children: [
                   Text(
                     '${filteredViolations.length} pelanggaran ditemukan',
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Colors.grey[700],
                       fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const Spacer(),
-                  // Severity breakdown
                   _MiniSeverityBadge(
                     label: 'Ringan',
                     count: filteredViolations
@@ -279,46 +289,43 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Handle
                   Center(
                     child: Container(
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppTheme.border,
+                        color: Colors.grey[300],
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   const Text(
                     'Filter Pelanggaran',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A2E)),
                   ),
                   const SizedBox(height: 20),
-
-                  // Filter by Severity
-                  const Text(
+                  Text(
                     'Tingkat Keparahan',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[700],
                         fontSize: 13),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     children: ViolationSeverity.values.map((severity) {
-                      final isSelected =
-                          _selectedSeverity == severity;
+                      final isSelected = _selectedSeverity == severity;
                       return ChoiceChip(
                         label: Text(_getSeverityLabel(severity)),
                         selected: isSelected,
                         onSelected: (selected) {
                           setSheetState(() {
-                            _selectedSeverity =
-                                selected ? severity : null;
+                            _selectedSeverity = selected ? severity : null;
                           });
                         },
                         selectedColor: _getSeverityColor(severity)
@@ -327,13 +334,11 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 20),
-
-                  // Filter by Type
-                  const Text(
+                  Text(
                     'Tipe Pelanggaran',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[700],
                         fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -358,13 +363,11 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 20),
-
-                  // Filter by Session
-                  const Text(
+                  Text(
                     'Sesi Ujian',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[700],
                         fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -394,8 +397,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-
-                  // Action buttons
                   Row(
                     children: [
                       Expanded(
@@ -417,7 +418,10 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                             Navigator.pop(context);
                             _applyFilters();
                           },
-                          child: const Text('Terapkan'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary),
+                          child: const Text('Terapkan',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ],
@@ -458,14 +462,12 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppTheme.border,
+                      color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Header
                 Row(
                   children: [
                     Container(
@@ -491,7 +493,8 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                             violation.typeLabel,
                             style: const TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A2E),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -506,7 +509,7 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                               violation.severityLabel,
                               style: TextStyle(
                                 color: severityColor,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 12,
                               ),
                             ),
@@ -517,8 +520,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-
-                // Detail sections
                 _DetailRow(
                   icon: Icons.person_outline,
                   label: 'Siswa',
@@ -542,8 +543,6 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                   label: 'Sesi',
                   value: violation.sessionId,
                 ),
-
-                // Resolution info
                 if (violation.isResolved) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -561,14 +560,14 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                         Text(
                           'Ditangani oleh ${violation.resolvedBy ?? "pengawas"}',
                           style: const TextStyle(
-                              color: AppTheme.success, fontSize: 13),
+                              color: AppTheme.success,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
                   ),
                 ],
-
-                // Action: View student detail
                 const SizedBox(height: 20),
                 CustomButton(
                   text: 'Lihat Detail Siswa',
@@ -576,7 +575,7 @@ class _ViolationListScreenState extends State<ViolationListScreen> {
                   variant: CustomButtonVariant.outline,
                   isFullWidth: true,
                   onPressed: () {
-                    Navigator.pop(context); // Close bottom sheet
+                    Navigator.pop(context);
                     context.push(
                       '/pengawas/sessions/${violation.sessionId}/students/${violation.studentId}',
                     );
@@ -672,7 +671,7 @@ class _DetailRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppTheme.textHint),
+        Icon(icon, size: 18, color: Colors.grey[500]),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -680,16 +679,17 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1A1A2E)),
               ),
             ],
           ),
@@ -699,7 +699,7 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-/// Mini severity badge for summary
+/// Mini severity badge
 class _MiniSeverityBadge extends StatelessWidget {
   final String label;
   final int count;
@@ -730,7 +730,7 @@ class _MiniSeverityBadge extends StatelessWidget {
           style: TextStyle(
             color: color,
             fontSize: 11,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -738,7 +738,7 @@ class _MiniSeverityBadge extends StatelessWidget {
   }
 }
 
-/// Enhanced violation card with action badge
+/// Enhanced violation card
 class _EnhancedViolationCard extends StatelessWidget {
   final Violation violation;
   final VoidCallback? onTap;
@@ -758,20 +758,26 @@ class _EnhancedViolationCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: severityColor.withValues(alpha: 0.05),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: severityColor.withValues(alpha: 0.2),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            // Icon
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: severityColor.withValues(alpha: 0.12),
+                color: severityColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -782,8 +788,6 @@ class _EnhancedViolationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,19 +798,19 @@ class _EnhancedViolationCard extends StatelessWidget {
                         child: Text(
                           violation.studentName,
                           style: const TextStyle(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
+                            color: Color(0xFF1A1A2E),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      // Severity badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: severityColor.withValues(alpha: 0.15),
+                          color: severityColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -814,7 +818,7 @@ class _EnhancedViolationCard extends StatelessWidget {
                           style: TextStyle(
                             color: severityColor,
                             fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -826,38 +830,34 @@ class _EnhancedViolationCard extends StatelessWidget {
                     style: TextStyle(
                       color: severityColor,
                       fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     violation.description,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                        color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w400),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-
             const SizedBox(width: 8),
-
-            // Right column
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   violation.timeFormatted,
-                  style: const TextStyle(
-                      color: AppTheme.textHint, fontSize: 11),
+                  style: TextStyle(
+                      color: Colors.grey[500], fontSize: 11),
                 ),
                 const SizedBox(height: 6),
-                // Action taken badge
                 if (violation.isResolved)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                        horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppTheme.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -873,7 +873,7 @@ class _EnhancedViolationCard extends StatelessWidget {
                           style: TextStyle(
                             color: AppTheme.success,
                             fontSize: 9,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -882,7 +882,7 @@ class _EnhancedViolationCard extends StatelessWidget {
                 else
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                        horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppTheme.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -898,7 +898,7 @@ class _EnhancedViolationCard extends StatelessWidget {
                           style: TextStyle(
                             color: AppTheme.warning,
                             fontSize: 9,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -913,7 +913,7 @@ class _EnhancedViolationCard extends StatelessWidget {
   }
 }
 
-/// State kosong untuk daftar pelanggaran
+/// State kosong
 class _EmptyViolations extends StatelessWidget {
   final bool hasFilters;
   const _EmptyViolations({this.hasFilters = false});
@@ -929,7 +929,7 @@ class _EmptyViolations extends StatelessWidget {
             Icon(
               hasFilters ? Icons.search_off : Icons.check_circle_outline,
               size: 64,
-              color: hasFilters ? AppTheme.textHint : AppTheme.success,
+              color: hasFilters ? Colors.grey[400] : AppTheme.success,
             ),
             const SizedBox(height: 16),
             Text(
@@ -937,20 +937,18 @@ class _EmptyViolations extends StatelessWidget {
                   ? 'Tidak Ditemukan'
                   : 'Tidak Ada Pelanggaran',
               style: TextStyle(
-                color: hasFilters
-                    ? AppTheme.textSecondary
-                    : AppTheme.success,
+                color: hasFilters ? Colors.grey[700] : AppTheme.success,
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               hasFilters
                   ? 'Coba ubah filter pencarian Anda'
                   : 'Semua siswa mengerjakan ujian dengan jujur',
-              style: const TextStyle(
-                  color: AppTheme.textHint, fontSize: 14),
+              style: TextStyle(
+                  color: Colors.grey[500], fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],

@@ -7,7 +7,7 @@ import '../../providers/exam_provider.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman hasil ujian
+/// Halaman hasil ujian — PRO-MAX UI/UX
 class ExamResultScreen extends StatefulWidget {
   final String examId;
 
@@ -50,16 +50,24 @@ class _ExamResultScreenState extends State<ExamResultScreen>
     final examProvider = context.watch<ExamProvider>();
     final result = examProvider.examResult;
 
-    // Mulai animasi saat data hasil sudah dimuat
     if (result != null && !_animationController.isCompleted) {
       _animationController.forward();
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Hasil Ujian'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Hasil Ujian',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A2E)),
           onPressed: () => context.go('/siswa'),
         ),
         actions: [
@@ -71,8 +79,13 @@ class _ExamResultScreenState extends State<ExamResultScreen>
               icon: Icon(
                 _showReview ? Icons.bar_chart : Icons.quiz_outlined,
                 size: 18,
+                color: AppTheme.primary,
               ),
-              label: Text(_showReview ? 'Ringkasan' : 'Review Soal'),
+              label: Text(
+                _showReview ? 'Ringkasan' : 'Review Soal',
+                style: const TextStyle(
+                    color: AppTheme.primary, fontWeight: FontWeight.w600),
+              ),
             ),
         ],
       ),
@@ -94,11 +107,15 @@ class _ExamResultScreenState extends State<ExamResultScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
             const SizedBox(height: 16),
             Text(
               error ?? 'Gagal memuat hasil ujian',
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -129,7 +146,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
           // Status kelulusan
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Color(result.passColor).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
@@ -150,7 +167,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   style: TextStyle(
                     color: Color(result.passColor),
                     fontSize: 22,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
@@ -176,7 +193,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
               _StatBox(
                 label: 'Belum Dijawab',
                 value: '${result.unanswered}',
-                color: AppTheme.textHint,
+                color: Colors.grey[500]!,
               ),
             ],
           ),
@@ -187,9 +204,16 @@ class _ExamResultScreenState extends State<ExamResultScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +222,8 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   'Rincian Skor',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -245,30 +270,32 @@ class _ExamResultScreenState extends State<ExamResultScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.background,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: Colors.grey[200]!),
             ),
             child: Row(
               children: [
-                const Icon(Icons.timer_outlined, color: AppTheme.textSecondary),
+                Icon(Icons.timer_outlined, color: Colors.grey[600]),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Waktu Pengerjaan',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
                         _formatTimeTaken(result.timeTaken),
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A2E),
                         ),
                       ),
                     ],
@@ -278,18 +305,20 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text(
+                      Text(
                         'Diselesaikan',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
                         Helpers.formatDateTime(result.completedAt!),
                         style: const TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A2E),
                         ),
                       ),
                     ],
@@ -352,15 +381,22 @@ class _ExamResultScreenState extends State<ExamResultScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isCorrect
                   ? AppTheme.success.withValues(alpha: 0.3)
                   : wasAnswered
                       ? AppTheme.error.withValues(alpha: 0.3)
-                      : AppTheme.border,
+                      : Colors.grey[300]!,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +410,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                       ? AppTheme.success.withValues(alpha: 0.05)
                       : wasAnswered
                           ? AppTheme.error.withValues(alpha: 0.05)
-                          : AppTheme.background,
+                          : Colors.grey[50],
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(14),
                     topRight: Radius.circular(14),
@@ -384,7 +420,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -393,7 +429,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                         'Soal ${review.questionNumber}',
                         style: const TextStyle(
                           color: AppTheme.primary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
                       ),
@@ -409,7 +445,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                           ? AppTheme.success
                           : wasAnswered
                               ? AppTheme.error
-                              : AppTheme.textHint,
+                              : Colors.grey[500],
                       size: 22,
                     ),
                     const SizedBox(width: 6),
@@ -424,8 +460,8 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                             ? AppTheme.success
                             : wasAnswered
                                 ? AppTheme.error
-                                : AppTheme.textHint,
-                        fontWeight: FontWeight.w600,
+                                : Colors.grey[600],
+                        fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
                     ),
@@ -441,9 +477,11 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   children: [
                     Text(
                       review.questionText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         height: 1.5,
+                        color: Colors.grey[800],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -470,24 +508,24 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.background,
+                          color: const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.border),
+                          border: Border.all(color: const Color(0xFFFCD34D)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.lightbulb_outline,
-                                    size: 16, color: AppTheme.accent),
-                                SizedBox(width: 6),
-                                Text(
+                                const Icon(Icons.lightbulb_outline,
+                                    size: 16, color: Color(0xFFD97706)),
+                                const SizedBox(width: 6),
+                                const Text(
                                   'Pembahasan',
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                     fontSize: 12,
-                                    color: AppTheme.accent,
+                                    color: Color(0xFFD97706),
                                   ),
                                 ),
                               ],
@@ -495,9 +533,10 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                             const SizedBox(height: 6),
                             Text(
                               review.explanation!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 height: 1.5,
+                                color: Colors.grey[800],
                               ),
                             ),
                           ],
@@ -547,9 +586,10 @@ class _ReviewAnswerRow extends StatelessWidget {
       children: [
         Text(
           '$label: ',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppTheme.textSecondary,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
         ),
         Container(
@@ -562,7 +602,7 @@ class _ReviewAnswerRow extends StatelessWidget {
             value,
             style: TextStyle(
               color: color,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               fontSize: 13,
             ),
           ),
@@ -587,25 +627,25 @@ class _ScoreCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            scoreColor.withValues(alpha: 0.1),
-            scoreColor.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: scoreColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Judul ujian
           Text(
             result.examTitle,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -614,9 +654,10 @@ class _ScoreCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             result.subject,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppTheme.textSecondary,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(height: 24),
@@ -657,7 +698,7 @@ class _ScoreCard extends StatelessWidget {
                                 : Helpers.getGradeLabel(result.totalScore),
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: scoreColor.withValues(alpha: 0.7),
                             ),
                           ),
@@ -703,7 +744,7 @@ class _StatBox extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 color: color,
               ),
             ),
@@ -713,7 +754,7 @@ class _StatBox extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 color: color,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -746,7 +787,7 @@ class _ScoreRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppTheme.textSecondary),
+        Icon(icon, size: 18, color: Colors.grey[600]),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -754,6 +795,7 @@ class _ScoreRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+              color: Colors.grey[800],
             ),
           ),
         ),
@@ -764,8 +806,8 @@ class _ScoreRow extends StatelessWidget {
                   : score!.toStringAsFixed(1)),
           style: TextStyle(
             fontSize: 16,
-            fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-            color: isBold ? AppTheme.primary : AppTheme.textPrimary,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: isBold ? AppTheme.primary : const Color(0xFF1A1A2E),
           ),
         ),
       ],

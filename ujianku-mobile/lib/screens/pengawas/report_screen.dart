@@ -6,7 +6,7 @@ import '../../providers/proctor_provider.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman laporan sesi pengawasan — lengkap dengan breakdown & tabel
+/// Halaman laporan sesi — PRO-MAX UI/UX
 class ReportScreen extends StatefulWidget {
   final String sessionId;
 
@@ -33,12 +33,21 @@ class _ReportScreenState extends State<ReportScreen> {
     final report = proctorProvider.report;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Laporan Sesi'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Laporan Sesi',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         actions: [
           if (widget.sessionId.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.share_outlined),
+              icon: Icon(Icons.share_outlined, color: Colors.grey[700]),
               onPressed: _shareReport,
               tooltip: 'Bagikan',
             ),
@@ -62,18 +71,21 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.assessment_outlined,
-                size: 64, color: AppTheme.textHint),
+            Icon(Icons.assessment_outlined,
+                size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Pilih sesi untuk melihat laporan',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: 6),
+            Text(
               'Anda dapat melihat laporan sesi yang sudah selesai',
-              style: TextStyle(color: AppTheme.textHint, fontSize: 13),
+              style: TextStyle(color: Colors.grey[500], fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -95,11 +107,14 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Gagal memuat laporan',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 24),
             CustomButton(
@@ -126,10 +141,8 @@ class _ReportScreenState extends State<ReportScreen> {
     final subject = report['subject'] as String? ?? '';
     final className = report['class_name'] as String? ?? '';
 
-    // Violation breakdown by type
     final violationBreakdown =
         report['violation_breakdown'] as Map<String, dynamic>? ?? {};
-    // Student results
     final studentResults =
         report['student_results'] as List<dynamic>? ?? [];
 
@@ -138,21 +151,28 @@ class _ReportScreenState extends State<ReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Ringkasan sesi ──
+          // Ringkasan sesi
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Ringkasan Sesi',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white.withValues(alpha: 0.75),
                     fontSize: 14,
                   ),
                 ),
@@ -162,23 +182,29 @@ class _ReportScreenState extends State<ReportScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '$subject - $className',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          // ── Statistik utama ──
+          // Statistik utama
           const Text(
             'Statistik',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E)),
           ),
           const SizedBox(height: 16),
           Row(
@@ -218,21 +244,28 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── Tingkat penyelesaian ──
+          // Tingkat penyelesaian
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Tingkat Penyelesaian',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -243,7 +276,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         child: LinearProgressIndicator(
                           value: completionRate / 100,
                           minHeight: 12,
-                          backgroundColor: AppTheme.border,
+                          backgroundColor: Colors.grey[200],
                           valueColor: const AlwaysStoppedAnimation<Color>(
                               AppTheme.primary),
                         ),
@@ -254,7 +287,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       '${completionRate.toStringAsFixed(1)}%',
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         color: AppTheme.primary,
                       ),
                     ),
@@ -265,7 +298,7 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── Pelanggaran ──
+          // Pelanggaran
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -301,13 +334,13 @@ class _ReportScreenState extends State<ReportScreen> {
                           color: totalViolations > 0
                               ? AppTheme.error
                               : AppTheme.success,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
                         '$totalViolations pelanggaran tercatat',
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
+                        style: TextStyle(
+                          color: Colors.grey[600],
                           fontSize: 13,
                         ),
                       ),
@@ -328,12 +361,15 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
 
-          // ── Violation breakdown by type ──
+          // Violation breakdown
           if (violationBreakdown.isNotEmpty) ...[
             const SizedBox(height: 24),
             const Text(
               'Rincian Pelanggaran',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E)),
             ),
             const SizedBox(height: 12),
             ...violationBreakdown.entries.map((entry) {
@@ -349,9 +385,16 @@ class _ReportScreenState extends State<ReportScreen> {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -364,7 +407,9 @@ class _ReportScreenState extends State<ReportScreen> {
                           Text(
                             typeLabel,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 13),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Color(0xFF1A1A2E)),
                           ),
                           const SizedBox(height: 6),
                           ClipRRect(
@@ -372,10 +417,9 @@ class _ReportScreenState extends State<ReportScreen> {
                             child: LinearProgressIndicator(
                               value: percentage / 100,
                               minHeight: 6,
-                              backgroundColor: AppTheme.border,
-                              valueColor:
-                                  const AlwaysStoppedAnimation<Color>(
-                                      AppTheme.warning),
+                              backgroundColor: Colors.grey[200],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppTheme.warning),
                             ),
                           ),
                         ],
@@ -388,14 +432,15 @@ class _ReportScreenState extends State<ReportScreen> {
                         Text(
                           '$count',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             fontSize: 16,
+                            color: Color(0xFF1A1A2E),
                           ),
                         ),
                         Text(
                           '${percentage.toStringAsFixed(0)}%',
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
+                          style: TextStyle(
+                            color: Colors.grey[600],
                             fontSize: 11,
                           ),
                         ),
@@ -407,18 +452,21 @@ class _ReportScreenState extends State<ReportScreen> {
             }),
           ],
 
-          // ── Student results table ──
+          // Student results table
           if (studentResults.isNotEmpty) ...[
             const SizedBox(height: 24),
             const Text(
               'Hasil Siswa',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E)),
             ),
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: Colors.grey[200]!),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -430,10 +478,9 @@ class _ReportScreenState extends State<ReportScreen> {
                     3: FlexColumnWidth(1),
                   },
                   children: [
-                    // Header
                     TableRow(
                       decoration:
-                          const BoxDecoration(color: AppTheme.background),
+                          const BoxDecoration(color: Color(0xFFF8F9FA)),
                       children: [
                         _TableHeaderCell('Nama'),
                         _TableHeaderCell('Skor'),
@@ -441,7 +488,6 @@ class _ReportScreenState extends State<ReportScreen> {
                         _TableHeaderCell('Pel.'),
                       ],
                     ),
-                    // Data rows
                     ...studentResults.map((item) {
                       final data = item as Map<String, dynamic>;
                       final name = data['name'] as String? ?? '-';
@@ -475,16 +521,18 @@ class _ReportScreenState extends State<ReportScreen> {
 
                       return TableRow(
                         decoration: const BoxDecoration(
-                          color: AppTheme.surface,
+                          color: Colors.white,
                           border: Border(
-                            bottom: BorderSide(color: AppTheme.border),
+                            bottom: BorderSide(color: Color(0xFFE5E7EB)),
                           ),
                         ),
                         children: [
                           _TableDataCell(Text(
                             name,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 12),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                                color: Color(0xFF1A1A2E)),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           )),
@@ -492,7 +540,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             score.toStringAsFixed(0),
                             style: TextStyle(
                               color: scoreColor,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
                           )),
@@ -508,7 +556,7 @@ class _ReportScreenState extends State<ReportScreen> {
                               style: TextStyle(
                                 color: statusColor,
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -518,9 +566,9 @@ class _ReportScreenState extends State<ReportScreen> {
                             style: TextStyle(
                               color: violationCount > 0
                                   ? AppTheme.warning
-                                  : AppTheme.textHint,
+                                  : Colors.grey[500],
                               fontWeight: violationCount > 0
-                                  ? FontWeight.w600
+                                  ? FontWeight.w700
                                   : FontWeight.normal,
                               fontSize: 12,
                             ),
@@ -537,7 +585,6 @@ class _ReportScreenState extends State<ReportScreen> {
 
           const SizedBox(height: 32),
 
-          // ── Tombol aksi ──
           if (widget.sessionId.isNotEmpty) ...[
             CustomButton(
               text: 'Ekspor Laporan PDF',
@@ -563,18 +610,18 @@ class _ReportScreenState extends State<ReportScreen> {
 
   void _exportPdf() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur ekspor PDF segera hadir'),
-        backgroundColor: AppTheme.accent,
+      SnackBar(
+        content: const Text('Fitur ekspor PDF segera hadir'),
+        backgroundColor: Colors.orange[700],
       ),
     );
   }
 
   void _shareReport() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur bagikan laporan segera hadir'),
-        backgroundColor: AppTheme.accent,
+      SnackBar(
+        content: const Text('Fitur bagikan laporan segera hadir'),
+        backgroundColor: Colors.orange[700],
       ),
     );
   }
@@ -587,24 +634,29 @@ class _ReportScreenState extends State<ReportScreen> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.stop_circle, color: AppTheme.error, size: 24),
+            Icon(Icons.stop_circle, color: Colors.red[700], size: 24),
             const SizedBox(width: 8),
-            const Text('Akhiri Sesi Pengawasan?'),
+            const Text('Akhiri Sesi Pengawasan?',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Text(
+        content: Text(
           'Sesi akan diakhiri dan semua siswa yang masih mengerjakan ujian '
           'akan dikumpulkan otomatis. Tindakan ini tidak dapat dibatalkan.',
+          style: TextStyle(color: Colors.grey[700]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal',
+                style: TextStyle(
+                    color: Colors.grey[600], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Akhiri Sesi'),
+            child: const Text('Akhiri Sesi',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -694,7 +746,7 @@ class _ReportStatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
@@ -705,16 +757,16 @@ class _ReportStatCard extends StatelessWidget {
               style: TextStyle(
                 color: color,
                 fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
+              style: TextStyle(
+                color: Colors.grey[600],
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -736,10 +788,10 @@ class _TableHeaderCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       child: Text(
         text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
           fontSize: 11,
-          color: AppTheme.textSecondary,
+          color: Colors.grey[700],
         ),
       ),
     );

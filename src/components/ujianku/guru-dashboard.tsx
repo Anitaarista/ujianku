@@ -6,10 +6,10 @@ import {
   LayoutDashboard, BookOpen, FileText, ClipboardCheck, Award,
   Bell, Search, LogOut, ChevronRight, Plus, Download,
   TrendingUp, Clock, Users, CheckCircle, XCircle, Edit,
-  Trash2, Eye, MoreVertical, ArrowLeft, ArrowRight, Upload,
+  Trash2, Eye, ArrowLeft, ArrowRight,
   GraduationCap, BarChart3, Settings, AlertTriangle, Star,
-  Check, Filter, Copy, Shuffle, Lock, Unlock, Timer,
-  BookMarked, Layers, Flag, Loader2, AlertCircle
+  Copy, Shuffle, Lock, Unlock, Timer,
+  BookMarked, Layers, Loader2, AlertCircle, X, MoreVertical
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -89,21 +89,47 @@ async function apiFetch(url: string, token: string | null, options?: RequestInit
   return res.json()
 }
 
+// ==================== LOADING SKELETON ====================
+function LoadingSkeleton() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <p className="text-sm text-gray-500 font-medium">Memuat data...</p>
+      </div>
+    </div>
+  )
+}
+
+// ==================== EMPTY STATE ====================
+function EmptyState({ message, icon: Icon }: { message: string; icon?: React.ElementType }) {
+  const IconComp = Icon || FileText
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+        <IconComp className="w-7 h-7 text-gray-400" />
+      </div>
+      <p className="text-sm font-medium text-gray-700">{message}</p>
+    </div>
+  )
+}
+
 export function GuruDashboard({ onBack, user, token }: GuruDashboardProps) {
   const [activeTab, setActiveTab] = useState<GuruTab>('dashboard')
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
+      {/* Dark Sidebar - Emerald Theme */}
+      <aside className="w-64 bg-gray-900 flex flex-col shrink-0">
+        <div className="h-16 flex items-center px-5 border-b border-white/10">
           <button onClick={onBack} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold tracking-tight">UjianKu</span>
-              <span className="text-xs text-gray-500 block -mt-1">Guru Panel</span>
+              <span className="text-base font-bold tracking-tight text-white">UjianKu</span>
+              <span className="text-[10px] text-gray-400 block -mt-0.5 uppercase tracking-wider">Guru Panel</span>
             </div>
           </button>
         </div>
@@ -115,28 +141,28 @@ export function GuruDashboard({ onBack, user, token }: GuruDashboardProps) {
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === item.id
-                  ? 'bg-emerald-50 text-emerald-700 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
               }`}
             >
-              <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-emerald-600' : ''}`} />
+              <item.icon className="w-5 h-5" />
               <span>{item.label}</span>
-              {activeTab === item.id && <ChevronRight className="w-4 h-4 ml-auto text-emerald-400" />}
+              {activeTab === item.id && <ChevronRight className="w-4 h-4 ml-auto text-emerald-200" />}
             </button>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
               {user?.name ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'SN'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Guru'}</p>
+              <p className="text-sm font-semibold text-white truncate">{user?.name || 'Guru'}</p>
               <p className="text-xs text-gray-500">{user?.email || ''}</p>
             </div>
-            <button onClick={onBack} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-              <LogOut className="w-4 h-4 text-gray-400" />
+            <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Logout">
+              <LogOut className="w-4 h-4 text-gray-500 hover:text-gray-300" />
             </button>
           </div>
         </div>
@@ -150,7 +176,7 @@ export function GuruDashboard({ onBack, user, token }: GuruDashboardProps) {
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <Input placeholder="Cari..." className="pl-9 w-64 h-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input placeholder="Cari..." className="pl-9 w-64 h-9 bg-gray-50 border-gray-200" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <Bell className="w-5 h-5 text-gray-600" />
@@ -199,19 +225,17 @@ function GuruOverview({ token }: { token: string | null }) {
     fetchData()
   }, [token])
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
-  }
+  if (loading) return <LoadingSkeleton />
 
   const totalSoal = summary?.totalQuestions ?? 0
   const ujianAktif = exams.filter(e => e.status === 'PUBLISHED' || e.status === 'ONGOING').length
   const avgScore = results.filter(r => r.totalNilai !== null).reduce((sum, r) => sum + (r.totalNilai ?? 0), 0) / (results.filter(r => r.totalNilai !== null).length || 1)
 
   const stats = [
-    { label: 'Total Soal', value: totalSoal, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Ujian Aktif', value: ujianAktif, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Total Ujian', value: exams.length, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
-    { label: 'Rata-rata Nilai', value: avgScore.toFixed(1), icon: BarChart3, color: 'text-sky-600', bg: 'bg-sky-50' },
+    { label: 'Total Soal', value: totalSoal, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+    { label: 'Ujian Aktif', value: ujianAktif, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
+    { label: 'Total Ujian', value: exams.length, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' },
+    { label: 'Rata-rata Nilai', value: avgScore.toFixed(1), icon: BarChart3, color: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-100' },
   ]
 
   return (
@@ -219,13 +243,13 @@ function GuruOverview({ token }: { token: string | null }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card>
+            <Card className={`border ${stat.border} shadow-sm`}>
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">{stat.label}</p>
+                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                    <p className="text-xs text-gray-400 mt-1">Data real-time</p>
+                    <p className="text-xs font-medium text-gray-500 mt-1">Data real-time</p>
                   </div>
                   <div className={`w-11 h-11 ${stat.bg} rounded-xl flex items-center justify-center`}>
                     <stat.icon className={`w-5 h-5 ${stat.color}`} />
@@ -238,14 +262,14 @@ function GuruOverview({ token }: { token: string | null }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Ujian Mendatang</CardTitle></CardHeader>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4"><CardTitle className="text-base font-semibold text-gray-900">Ujian Mendatang</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {exams.filter(e => e.status === 'PUBLISHED' || e.status === 'ONGOING').length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Tidak ada ujian mendatang</p>
+              <EmptyState message="Tidak ada ujian mendatang" icon={Timer} />
             ) : (
               exams.filter(e => e.status === 'PUBLISHED' || e.status === 'ONGOING').map((exam) => (
-                <div key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div key={exam.id} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-emerald-50/50 transition-colors border border-gray-100">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                     exam.status === 'ONGOING' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
                   }`}>
@@ -253,9 +277,9 @@ function GuruOverview({ token }: { token: string | null }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{exam.judul}</p>
-                    <p className="text-xs text-gray-500">{exam.mataPelajaran?.nama || '-'} · {exam.durasi} menit · {exam._count?.examSoal ?? 0} soal</p>
+                    <p className="text-xs text-gray-500 font-medium">{exam.mataPelajaran?.nama || '-'} · {exam.durasi} menit · {exam._count?.examSoal ?? 0} soal</p>
                   </div>
-                  <Badge className={getStatusColor(exam.status)}>
+                  <Badge className={`${getStatusColor(exam.status)} font-semibold border-0`}>
                     {exam.status === 'ONGOING' ? 'Berlangsung' : 'Terbit'}
                   </Badge>
                 </div>
@@ -264,24 +288,24 @@ function GuruOverview({ token }: { token: string | null }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">Hasil Terbaru</CardTitle></CardHeader>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4"><CardTitle className="text-base font-semibold text-gray-900">Hasil Terbaru</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {results.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Belum ada hasil ujian</p>
+              <EmptyState message="Belum ada hasil ujian" icon={ClipboardCheck} />
             ) : (
               results.slice(0, 5).map((result) => (
-                <div key={result.id} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div key={result.id} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-emerald-50/50 transition-colors border border-gray-100">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                    (result.totalNilai ?? 0) >= 75 ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : 'bg-gradient-to-br from-red-400 to-orange-500'
+                    (result.totalNilai ?? 0) >= 75 ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-orange-500'
                   }`}>
                     {result.totalNilai?.toFixed(0) ?? '-'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{result.siswa?.name || '-'}</p>
-                    <p className="text-xs text-gray-500">{result.exam?.judul || '-'}</p>
+                    <p className="text-xs text-gray-500 font-medium">{result.exam?.judul || '-'}</p>
                   </div>
-                  <span className={`text-xs font-medium ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <span className={`text-xs font-bold ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
                     {(result.totalNilai ?? 0) >= 75 ? 'Lulus' : 'Tidak Lulus'}
                   </span>
                 </div>
@@ -369,9 +393,7 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
     }
   }
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
-  }
+  if (loading) return <LoadingSkeleton />
 
   const totalSoal = summary?.totalQuestions ?? soalList.length
   const pgCount = summary?.byType?.find(b => b.type === 'PILIHAN_GANDA')?.count ?? 0
@@ -381,13 +403,13 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
+          <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 font-medium" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
             <option value="all">Semua Tingkat</option>
             <option value="MUDAH">Mudah</option>
             <option value="SEDANG">Sedang</option>
             <option value="SULIT">Sulit</option>
           </select>
-          <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+          <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 font-medium" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="all">Semua Tipe</option>
             <option value="PILIHAN_GANDA">Pilihan Ganda</option>
             <option value="ESSAY">Essay</option>
@@ -396,8 +418,8 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Ekspor</Button>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowAddModal(true)}>
+          <Button variant="outline" size="sm" className="text-gray-700 border-gray-200"><Download className="w-4 h-4 mr-2" />Ekspor</Button>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200" onClick={() => setShowAddModal(true)}>
             <Plus className="w-4 h-4 mr-2" />Tambah Soal
           </Button>
         </div>
@@ -405,14 +427,14 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
 
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Total Soal', value: totalSoal, color: 'text-emerald-600' },
-          { label: 'Pilihan Ganda', value: pgCount, color: 'text-violet-600' },
-          { label: 'Essay', value: essayCount, color: 'text-amber-600' },
+          { label: 'Total Soal', value: totalSoal, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+          { label: 'Pilihan Ganda', value: pgCount, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' },
+          { label: 'Essay', value: essayCount, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
         ].map((s) => (
-          <Card key={s.label}>
-            <CardContent className="p-4 text-center">
+          <Card key={s.label} className={`border ${s.border} shadow-sm`}>
+            <CardContent className="p-5 text-center">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className="text-xs font-semibold text-gray-600 mt-1">{s.label}</p>
             </CardContent>
           </Card>
         ))}
@@ -420,40 +442,40 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {soalList.length === 0 ? (
-          <div className="col-span-2 text-center py-8 text-gray-500">Belum ada soal</div>
+          <div className="col-span-2"><EmptyState message="Belum ada soal" icon={BookOpen} /></div>
         ) : (
           soalList.map((soal, i) => (
             <motion.div key={soal.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="hover:shadow-md transition-shadow h-full">
+              <Card className="hover:shadow-md transition-shadow h-full shadow-sm border-gray-100">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline" className="text-xs">{soal.mataPelajaran?.nama || '-'}</Badge>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(soal.tingkatKesulitan)}`}>
+                      <Badge variant="outline" className="text-xs font-semibold text-gray-700 border-gray-200">{soal.mataPelajaran?.nama || '-'}</Badge>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getDifficultyColor(soal.tingkatKesulitan)}`}>
                         {soal.tingkatKesulitan}
                       </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                         {soal.tipeSoal === 'PILIHAN_GANDA' ? 'PG' : soal.tipeSoal === 'ESSAY' ? 'Essay' : soal.tipeSoal === 'BENAR_SALAH' ? 'B/S' : 'Singkat'}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400">Poin: {soal.poin}</span>
+                    <span className="text-xs font-semibold text-gray-500">Poin: {soal.poin}</span>
                   </div>
-                  <p className="text-sm text-gray-800 leading-relaxed mb-3 line-clamp-3">{soal.pertanyaan}</p>
+                  <p className="text-sm text-gray-800 leading-relaxed mb-3 line-clamp-3 font-medium">{soal.pertanyaan}</p>
                   {soal.opsiA && (
                     <div className="space-y-1 mb-3">
                       {[soal.opsiA, soal.opsiB, soal.opsiC, soal.opsiD].filter(Boolean).map((opsi, idx) => (
-                        <div key={idx} className={`text-xs p-1.5 rounded ${String.fromCharCode(65 + idx) === soal.jawabanBenar ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-600'}`}>
+                        <div key={idx} className={`text-xs p-1.5 rounded ${String.fromCharCode(65 + idx) === soal.jawabanBenar ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-gray-600'}`}>
                           {String.fromCharCode(65 + idx)}. {opsi}
                         </div>
                       ))}
                     </div>
                   )}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-xs text-gray-400">Oleh: {soal.guru?.name || '-'}</span>
+                    <span className="text-xs font-medium text-gray-500">Oleh: {soal.guru?.name || '-'}</span>
                     <div className="flex items-center gap-1">
-                      <button className="p-1.5 hover:bg-gray-100 rounded-lg"><Copy className="w-3.5 h-3.5 text-gray-400" /></button>
-                      <button className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit className="w-3.5 h-3.5 text-gray-400" /></button>
-                      <button onClick={() => handleDeleteSoal(soal.id)} className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
+                      <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Copy className="w-3.5 h-3.5 text-gray-500" /></button>
+                      <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><Edit className="w-3.5 h-3.5 text-gray-500" /></button>
+                      <button onClick={() => handleDeleteSoal(soal.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-red-500" /></button>
                     </div>
                   </div>
                 </CardContent>
@@ -463,26 +485,27 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
         )}
       </div>
 
+      {/* Add Soal Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">Tambah Soal Baru</h2>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">✕</button>
+                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="w-4 h-4 text-gray-500" /></button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Mata Pelajaran</label>
-                    <select className="w-full h-9 rounded-lg border border-gray-200 px-3 text-sm" value={newSoal.mataPelajaranId} onChange={(e) => setNewSoal({ ...newSoal, mataPelajaranId: e.target.value })}>
+                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Mata Pelajaran</label>
+                    <select className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900" value={newSoal.mataPelajaranId} onChange={(e) => setNewSoal({ ...newSoal, mataPelajaranId: e.target.value })}>
                       <option value="">Pilih Mapel</option>
                       {mapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Tipe Soal</label>
-                    <select className="w-full h-9 rounded-lg border border-gray-200 px-3 text-sm" value={newSoal.tipeSoal} onChange={(e) => setNewSoal({ ...newSoal, tipeSoal: e.target.value })}>
+                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Tipe Soal</label>
+                    <select className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900" value={newSoal.tipeSoal} onChange={(e) => setNewSoal({ ...newSoal, tipeSoal: e.target.value })}>
                       <option value="PILIHAN_GANDA">Pilihan Ganda</option>
                       <option value="ESSAY">Essay</option>
                       <option value="BENAR_SALAH">Benar/Salah</option>
@@ -491,41 +514,42 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Tingkat Kesulitan</label>
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Tingkat Kesulitan</label>
                   <div className="flex gap-2">
                     {(['MUDAH', 'SEDANG', 'SULIT'] as const).map((d) => (
-                      <button key={d} onClick={() => setNewSoal({ ...newSoal, tingkatKesulitan: d })} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                        newSoal.tingkatKesulitan === d ? 'bg-amber-50 border-amber-200 text-amber-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      <button key={d} onClick={() => setNewSoal({ ...newSoal, tingkatKesulitan: d })} className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${
+                        newSoal.tingkatKesulitan === d ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}>{d === 'MUDAH' ? 'Mudah' : d === 'SEDANG' ? 'Sedang' : 'Sulit'}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Pertanyaan</label>
-                  <textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[100px]" placeholder="Tulis pertanyaan..." value={newSoal.pertanyaan} onChange={(e) => setNewSoal({ ...newSoal, pertanyaan: e.target.value })} />
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Pertanyaan</label>
+                  <textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[100px] focus:border-emerald-400 focus:ring-emerald-400/20" placeholder="Tulis pertanyaan..." value={newSoal.pertanyaan} onChange={(e) => setNewSoal({ ...newSoal, pertanyaan: e.target.value })} />
                 </div>
                 {newSoal.tipeSoal === 'PILIHAN_GANDA' && (
                   <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 block">Opsi Jawaban</label>
                     {(['A', 'B', 'C', 'D'] as const).map((opt) => (
                       <div key={opt} className="flex items-center gap-2">
                         <input type="radio" name="correct" checked={newSoal.jawabanBenar === opt} onChange={() => setNewSoal({ ...newSoal, jawabanBenar: opt })} className="accent-emerald-600" />
-                        <span className="text-sm font-medium text-gray-600 w-6">Opsi {opt}:</span>
-                        <Input className="flex-1" placeholder={`Masukkan opsi ${opt}...`} value={newSoal[`opsi${opt}` as keyof typeof newSoal] as string} onChange={(e) => setNewSoal({ ...newSoal, [`opsi${opt}`]: e.target.value })} />
+                        <span className="text-sm font-semibold text-gray-700 w-6">Opsi {opt}:</span>
+                        <Input className="flex-1 h-9" placeholder={`Masukkan opsi ${opt}...`} value={newSoal[`opsi${opt}` as keyof typeof newSoal] as string} onChange={(e) => setNewSoal({ ...newSoal, [`opsi${opt}`]: e.target.value })} />
                       </div>
                     ))}
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Pembahasan</label>
-                  <textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[80px]" placeholder="Tulis pembahasan..." value={newSoal.pembahasan} onChange={(e) => setNewSoal({ ...newSoal, pembahasan: e.target.value })} />
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Pembahasan</label>
+                  <textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[80px] focus:border-emerald-400 focus:ring-emerald-400/20" placeholder="Tulis pembahasan..." value={newSoal.pembahasan} onChange={(e) => setNewSoal({ ...newSoal, pembahasan: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Poin</label>
-                    <Input type="number" value={newSoal.poin} onChange={(e) => setNewSoal({ ...newSoal, poin: parseInt(e.target.value) || 1 })} />
+                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Poin</label>
+                    <Input type="number" value={newSoal.poin} onChange={(e) => setNewSoal({ ...newSoal, poin: parseInt(e.target.value) || 1 })} className="h-9" />
                   </div>
                   <div className="flex items-end gap-2">
-                    <label className="flex items-center gap-2 text-sm">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                       <input type="checkbox" checked={newSoal.isPublic} onChange={(e) => setNewSoal({ ...newSoal, isPublic: e.target.checked })} className="rounded accent-emerald-600" />
                       Publikasikan soal
                     </label>
@@ -533,8 +557,8 @@ function BankSoal({ token, searchQuery }: { token: string | null; searchQuery: s
                 </div>
               </div>
               <div className="p-6 border-t border-gray-100 flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowAddModal(false)}>Batal</Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={handleAddSoal} disabled={saving}>
+                <Button variant="outline" onClick={() => setShowAddModal(false)} className="text-gray-700 border-gray-200">Batal</Button>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200" onClick={handleAddSoal} disabled={saving}>
                   {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Simpan Soal
                 </Button>
@@ -580,50 +604,48 @@ function BuatUjian({ token }: { token: string | null }) {
     fetchData()
   }, [token])
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
-  }
+  if (loading) return <LoadingSkeleton />
 
   if (examList) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">Daftar Ujian</h2>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setExamList(false)}>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200" onClick={() => setExamList(false)}>
             <Plus className="w-4 h-4 mr-2" />Buat Ujian Baru
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-3">
           {exams.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">Belum ada ujian</div>
+            <EmptyState message="Belum ada ujian" icon={FileText} />
           ) : (
             exams.map((exam) => (
-              <Card key={exam.id} className="hover:shadow-md transition-shadow">
+              <Card key={exam.id} className="hover:shadow-md transition-shadow shadow-sm border-gray-100">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">{exam.judul}</h3>
-                        <Badge className={getStatusColor(exam.status)}>
+                        <h3 className="font-bold text-gray-900">{exam.judul}</h3>
+                        <Badge className={`${getStatusColor(exam.status)} font-semibold border-0`}>
                           {exam.status === 'ONGOING' ? 'Berlangsung' : exam.status === 'PUBLISHED' ? 'Terbit' : exam.status === 'SELESAI' ? 'Selesai' : 'Draft'}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-500 mb-2">{exam.deskripsi || '-'}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />{exam.mataPelajaran?.nama || '-'}</span>
-                        <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5" />{exam.durasi} menit</span>
-                        <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5" />{exam._count?.examSoal ?? 0} soal</span>
-                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{exam._count?.participants ?? 0} peserta</span>
+                      <div className="flex items-center gap-4 text-xs text-gray-600 font-medium">
+                        <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5 text-gray-400" />{exam.mataPelajaran?.nama || '-'}</span>
+                        <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5 text-gray-400" />{exam.durasi} menit</span>
+                        <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5 text-gray-400" />{exam._count?.examSoal ?? 0} soal</span>
+                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" />{exam._count?.participants ?? 0} peserta</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        {exam.acakSoal && <span className="flex items-center gap-1 text-xs text-gray-400"><Shuffle className="w-3 h-3" />Acak Soal</span>}
-                        {exam.acakOpsi && <span className="flex items-center gap-1 text-xs text-gray-400"><Shuffle className="w-3 h-3" />Acak Opsi</span>}
-                        {exam.antiCheat && <span className="flex items-center gap-1 text-xs text-gray-400"><Lock className="w-3 h-3" />Anti-Cheat</span>}
+                      <div className="flex items-center gap-3 mt-2">
+                        {exam.acakSoal && <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><Shuffle className="w-3 h-3" />Acak Soal</span>}
+                        {exam.acakOpsi && <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><Shuffle className="w-3 h-3" />Acak Opsi</span>}
+                        {exam.antiCheat && <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><Lock className="w-3 h-3" />Anti-Cheat</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 ml-4">
-                      <Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button>
-                      <Button variant="outline" size="sm"><Eye className="w-4 h-4" /></Button>
+                      <Button variant="outline" size="sm" className="text-gray-700 border-gray-200"><Edit className="w-4 h-4" /></Button>
+                      <Button variant="outline" size="sm" className="text-gray-700 border-gray-200"><Eye className="w-4 h-4" /></Button>
                     </div>
                   </div>
                 </CardContent>
@@ -648,7 +670,7 @@ function BuatUjian({ token }: { token: string | null }) {
       <div className="flex items-center justify-center gap-2">
         {steps.map((s, i) => (
           <React.Fragment key={s.num}>
-            <button onClick={() => setStep(s.num)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${step === s.num ? 'bg-emerald-50 text-emerald-700 shadow-sm' : step > s.num ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-50 text-gray-400'}`}>
+            <button onClick={() => setStep(s.num)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${step === s.num ? 'bg-emerald-50 text-emerald-700 shadow-sm' : step > s.num ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-50 text-gray-400'}`}>
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === s.num ? 'bg-emerald-600 text-white' : step > s.num ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 {step > s.num ? '✓' : s.num}
               </div>
@@ -659,47 +681,47 @@ function BuatUjian({ token }: { token: string | null }) {
         ))}
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-6">
           {step === 1 && (
-            <div className="space-y-4 max-w-xl">
+            <div className="space-y-5 max-w-xl">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Informasi Dasar Ujian</h2>
-              <div><label className="text-sm font-medium text-gray-700 mb-1 block">Judul Ujian</label><Input placeholder="Contoh: UTS Matematika Kelas XI IPA" /></div>
-              <div><label className="text-sm font-medium text-gray-700 mb-1 block">Deskripsi</label><textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[80px]" placeholder="Deskripsi ujian..." /></div>
+              <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Judul Ujian</label><Input placeholder="Contoh: UTS Matematika Kelas XI IPA" className="h-10" /></div>
+              <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Deskripsi</label><textarea className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm min-h-[80px] focus:border-emerald-400 focus:ring-emerald-400/20" placeholder="Deskripsi ujian..." /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Mata Pelajaran</label>
-                  <select className="w-full h-9 rounded-lg border border-gray-200 px-3 text-sm">{mapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}</select>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Mata Pelajaran</label>
+                  <select className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900">{mapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}</select>
                 </div>
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Tipe Ujian</label>
-                  <select className="w-full h-9 rounded-lg border border-gray-200 px-3 text-sm"><option>UTS</option><option>UAS</option><option>QUIZ</option><option>TUGAS</option><option>TRYOUT</option><option>PRAKTIKUM</option></select>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Tipe Ujian</label>
+                  <select className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900"><option>UTS</option><option>UAS</option><option>QUIZ</option><option>TUGAS</option><option>TRYOUT</option><option>PRAKTIKUM</option></select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Durasi (menit)</label><Input type="number" defaultValue={90} /></div>
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Token Ujian</label><Input placeholder="Opsional" /></div>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Durasi (menit)</label><Input type="number" defaultValue={90} className="h-10" /></div>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Token Ujian</label><Input placeholder="Opsional" className="h-10" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Tanggal Mulai</label><Input type="datetime-local" /></div>
-                <div><label className="text-sm font-medium text-gray-700 mb-1 block">Tanggal Selesai</label><Input type="datetime-local" /></div>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Tanggal Mulai</label><Input type="datetime-local" className="h-10" /></div>
+                <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Tanggal Selesai</label><Input type="datetime-local" className="h-10" /></div>
               </div>
             </div>
           )}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Pilih Soal dari Bank Soal</h2>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {soalList.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">Belum ada soal di bank soal</p>
+                  <EmptyState message="Belum ada soal di bank soal" icon={BookOpen} />
                 ) : (
                   soalList.map((soal) => (
-                    <div key={soal.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                      <input type="checkbox" className="mt-1 accent-emerald-600" />
+                    <div key={soal.id} className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:bg-emerald-50/30 transition-colors">
+                      <input type="checkbox" className="mt-1 accent-emerald-600 w-4 h-4" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 line-clamp-2">{soal.pertanyaan}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">{soal.mataPelajaran?.nama || '-'}</Badge>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(soal.tingkatKesulitan)}`}>{soal.tingkatKesulitan}</span>
-                          <span className="text-xs text-gray-400">Poin: {soal.poin}</span>
+                        <p className="text-sm text-gray-800 font-medium line-clamp-2">{soal.pertanyaan}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Badge variant="outline" className="text-xs font-semibold text-gray-700 border-gray-200">{soal.mataPelajaran?.nama || '-'}</Badge>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getDifficultyColor(soal.tingkatKesulitan)}`}>{soal.tingkatKesulitan}</span>
+                          <span className="text-xs font-semibold text-gray-500">Poin: {soal.poin}</span>
                         </div>
                       </div>
                     </div>
@@ -709,7 +731,7 @@ function BuatUjian({ token }: { token: string | null }) {
             </div>
           )}
           {step === 3 && (
-            <div className="space-y-4 max-w-xl">
+            <div className="space-y-5 max-w-xl">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Pengaturan Ujian</h2>
               {[
                 { label: 'Acak Urutan Soal', desc: 'Soal akan ditampilkan dalam urutan acak untuk setiap siswa', icon: Shuffle, defaultChecked: true },
@@ -717,53 +739,53 @@ function BuatUjian({ token }: { token: string | null }) {
                 { label: 'Anti-Cheat', desc: 'Aktifkan deteksi tab switch, copy-paste, dan face detection', icon: Lock, defaultChecked: true },
                 { label: 'Tampilkan Hasil Langsung', desc: 'Siswa dapat melihat nilai setelah selesai', icon: Eye, defaultChecked: false },
               ].map((setting) => (
-                <div key={setting.label} className="flex items-center justify-between p-4 rounded-xl border border-gray-100">
+                <div key={setting.label} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center"><setting.icon className="w-5 h-5 text-gray-600" /></div>
-                    <div><p className="text-sm font-medium text-gray-900">{setting.label}</p><p className="text-xs text-gray-500">{setting.desc}</p></div>
+                    <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center"><setting.icon className="w-5 h-5 text-gray-600" /></div>
+                    <div><p className="text-sm font-semibold text-gray-900">{setting.label}</p><p className="text-xs text-gray-500">{setting.desc}</p></div>
                   </div>
                   <input type="checkbox" defaultChecked={setting.defaultChecked} className="accent-emerald-600 w-5 h-5" />
                 </div>
               ))}
-              <div><label className="text-sm font-medium text-gray-700 mb-1 block">Passing Grade (%)</label><Input type="number" defaultValue={75} className="w-32" /></div>
-              <div><label className="text-sm font-medium text-gray-700 mb-1 block">Maksimum Percobaan</label><Input type="number" defaultValue={1} className="w-32" /></div>
+              <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Passing Grade (%)</label><Input type="number" defaultValue={75} className="w-32 h-10" /></div>
+              <div><label className="text-sm font-semibold text-gray-700 mb-1.5 block">Maksimum Percobaan</label><Input type="number" defaultValue={1} className="w-32 h-10" /></div>
             </div>
           )}
           {step === 4 && (
-            <div className="space-y-4 max-w-xl">
+            <div className="space-y-5 max-w-xl">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Assign ke Kelas</h2>
-              <p className="text-sm text-gray-500 mb-4">Pilih kelas yang akan mengerjakan ujian ini</p>
+              <p className="text-sm text-gray-600 font-medium mb-4">Pilih kelas yang akan mengerjakan ujian ini</p>
               {kelasList.filter(k => k.tingkat >= 10).map((kelas) => (
-                <label key={kelas.id} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                <label key={kelas.id} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-emerald-50/30 cursor-pointer transition-colors">
                   <input type="checkbox" className="accent-emerald-600 w-5 h-5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{kelas.nama}</p>
+                    <p className="text-sm font-semibold text-gray-900">{kelas.nama}</p>
                     <p className="text-xs text-gray-500">Wali Kelas: {kelas.waliKelas?.name || '-'} · {kelas._count?.siswaKelas ?? 0} siswa</p>
                   </div>
-                  <Badge variant="outline">{kelas._count?.siswaKelas ?? 0} siswa</Badge>
+                  <Badge variant="outline" className="font-semibold text-gray-700">{kelas._count?.siswaKelas ?? 0} siswa</Badge>
                 </label>
               ))}
             </div>
           )}
           {step === 5 && (
-            <div className="space-y-4 max-w-2xl">
+            <div className="space-y-5 max-w-2xl">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Review & Publikasi</h2>
-              <Card className="bg-emerald-50 border-emerald-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5 text-emerald-600" /><span className="font-semibold text-emerald-800">Ujian siap dipublikasikan</span></div>
-                  <p className="text-sm text-emerald-700">Pastikan semua pengaturan sudah benar sebelum mempublikasikan ujian.</p>
+              <Card className="bg-emerald-50 border-emerald-200 shadow-sm">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5 text-emerald-600" /><span className="font-bold text-emerald-800">Ujian siap dipublikasikan</span></div>
+                  <p className="text-sm text-emerald-700 font-medium">Pastikan semua pengaturan sudah benar sebelum mempublikasikan ujian.</p>
                 </CardContent>
               </Card>
             </div>
           )}
           <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-100">
-            <Button variant="outline" onClick={() => step > 1 ? setStep(step - 1) : setExamList(true)}>
+            <Button variant="outline" onClick={() => step > 1 ? setStep(step - 1) : setExamList(true)} className="text-gray-700 border-gray-200">
               <ArrowLeft className="w-4 h-4 mr-2" />{step > 1 ? 'Sebelumnya' : 'Kembali'}
             </Button>
             {step < 5 ? (
-              <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setStep(step + 1)}>Selanjutnya <ArrowRight className="w-4 h-4 ml-2" /></Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200" onClick={() => setStep(step + 1)}>Selanjutnya <ArrowRight className="w-4 h-4 ml-2" /></Button>
             ) : (
-              <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setExamList(true)}>Publikasikan Ujian <CheckCircle className="w-4 h-4 ml-2" /></Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200" onClick={() => setExamList(true)}>Publikasikan Ujian <CheckCircle className="w-4 h-4 ml-2" /></Button>
             )}
           </div>
         </CardContent>
@@ -797,29 +819,27 @@ function HasilUjian({ token }: { token: string | null }) {
     fetchData()
   }, [token])
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
-  }
+  if (loading) return <LoadingSkeleton />
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white">
+        <select className="h-9 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 font-medium">
           <option>Semua Ujian</option>
           {exams.map(e => <option key={e.id} value={e.id}>{e.judul}</option>)}
         </select>
-        <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Ekspor ke Excel</Button>
+        <Button variant="outline" size="sm" className="text-gray-700 border-gray-200"><Download className="w-4 h-4 mr-2" />Ekspor ke Excel</Button>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Distribusi Nilai</CardTitle></CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-4"><CardTitle className="text-base font-semibold text-gray-900">Distribusi Nilai</CardTitle></CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={gradeDistributionData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="range" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
-              <Tooltip />
+              <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#64748b' }} stroke="#e2e8f0" />
+              <YAxis tick={{ fontSize: 12, fill: '#64748b' }} stroke="#e2e8f0" />
+              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
               <Bar dataKey="jumlah" radius={[6, 6, 0, 0]}>
                 {gradeDistributionData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -830,46 +850,46 @@ function HasilUjian({ token }: { token: string | null }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Siswa</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Ujian</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Nilai PG</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Nilai Essay</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Total Nilai</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Durasi</th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+                <tr className="bg-gray-50 border-y border-gray-100">
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Siswa</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Ujian</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Nilai PG</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Nilai Essay</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Total Nilai</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Durasi</th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {results.length === 0 ? (
-                  <tr><td colSpan={7} className="py-8 text-center text-gray-500">Belum ada hasil ujian</td></tr>
+                  <tr><td colSpan={7}><EmptyState message="Belum ada hasil ujian" icon={ClipboardCheck} /></td></tr>
                 ) : (
-                  results.map((result) => (
-                    <tr key={result.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  results.map((result, i) => (
+                    <tr key={result.id} className={`border-b border-gray-50 hover:bg-emerald-50/30 transition-colors ${i % 2 === 1 ? 'bg-gray-50/30' : ''}`}>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                             {result.siswa?.name?.split(' ').map(n => n[0]).slice(0, 2).join('') || '?'}
                           </div>
-                          <span className="font-medium text-gray-900">{result.siswa?.name || '-'}</span>
+                          <span className="font-semibold text-gray-900">{result.siswa?.name || '-'}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{result.exam?.judul || '-'}</td>
-                      <td className="py-3 px-4 text-gray-600">{result.nilai !== null ? result.nilai.toFixed(1) : '-'}</td>
-                      <td className="py-3 px-4 text-gray-600">{result.nilaiEssay !== null ? result.nilaiEssay.toFixed(1) : '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{result.exam?.judul || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700 font-medium">{result.nilai !== null ? result.nilai.toFixed(1) : '-'}</td>
+                      <td className="py-3 px-4 text-gray-700 font-medium">{result.nilaiEssay !== null ? result.nilaiEssay.toFixed(1) : '-'}</td>
                       <td className="py-3 px-4">
-                        <span className={`font-semibold ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <span className={`font-bold ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
                           {result.totalNilai !== null ? result.totalNilai.toFixed(1) : '-'}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{result.durasi ? formatDuration(result.durasi) : '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{result.durasi ? formatDuration(result.durasi) : '-'}</td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(result.status)}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(result.status)}`}>
                           {result.status === 'SELESAI' ? 'Selesai' : result.status === 'TIMEOUT' ? 'Waktu Habis' : result.status === 'DISKUALIFIKASI' ? 'Diskualifikasi' : result.status}
                         </span>
                       </td>
@@ -905,9 +925,7 @@ function NilaiRapor({ token }: { token: string | null }) {
     fetchData()
   }, [token])
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
-  }
+  if (loading) return <LoadingSkeleton />
 
   const totalResults = results.filter(r => r.totalNilai !== null)
   const avgScore = totalResults.length > 0 ? totalResults.reduce((sum, r) => sum + (r.totalNilai ?? 0), 0) / totalResults.length : 0
@@ -924,13 +942,13 @@ function NilaiRapor({ token }: { token: string | null }) {
           { label: 'Nilai Tertinggi', value: highestScore.toFixed(1), icon: Star, color: 'text-amber-600 bg-amber-50' },
           { label: 'Nilai Terendah', value: lowestScore.toFixed(1), icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
         ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.color}`}>
-                <stat.icon className="w-5 h-5" />
+          <Card key={stat.label} className="shadow-sm">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{stat.label}</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{stat.label}</p>
                 <p className="text-xl font-bold text-gray-900">{stat.value}</p>
               </div>
             </CardContent>
@@ -938,34 +956,34 @@ function NilaiRapor({ token }: { token: string | null }) {
         ))}
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Rekap Nilai Siswa</CardTitle></CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-4"><CardTitle className="text-base font-semibold text-gray-900">Rekap Nilai Siswa</CardTitle></CardHeader>
         <CardContent>
           {results.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">Belum ada data nilai</p>
+            <EmptyState message="Belum ada data nilai" icon={Award} />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Siswa</th>
-                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Ujian</th>
-                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Nilai</th>
-                    <th className="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+                  <tr className="bg-gray-50 border-y border-gray-100">
+                    <th className="text-left py-3 px-4 text-gray-600 font-semibold">Siswa</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-semibold">Ujian</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-semibold">Nilai</th>
+                    <th className="text-left py-3 px-4 text-gray-600 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((result) => (
-                    <tr key={result.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                      <td className="py-3 px-4 font-medium text-gray-900">{result.siswa?.name || '-'}</td>
-                      <td className="py-3 px-4 text-gray-600">{result.exam?.judul || '-'}</td>
+                  {results.map((result, i) => (
+                    <tr key={result.id} className={`border-b border-gray-50 hover:bg-emerald-50/30 transition-colors ${i % 2 === 1 ? 'bg-gray-50/30' : ''}`}>
+                      <td className="py-3 px-4 font-semibold text-gray-900">{result.siswa?.name || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{result.exam?.judul || '-'}</td>
                       <td className="py-3 px-4">
-                        <span className={`font-semibold ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <span className={`font-bold ${(result.totalNilai ?? 0) >= 75 ? 'text-emerald-600' : 'text-red-600'}`}>
                           {result.totalNilai !== null ? result.totalNilai.toFixed(1) : '-'}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${(result.totalNilai ?? 0) >= 75 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${(result.totalNilai ?? 0) >= 75 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                           {(result.totalNilai ?? 0) >= 75 ? 'Lulus' : 'Tidak Lulus'}
                         </span>
                       </td>

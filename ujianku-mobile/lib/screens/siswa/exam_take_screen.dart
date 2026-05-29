@@ -8,7 +8,7 @@ import '../../utils/anti_cheat_detector.dart';
 import '../../widgets/question_widget.dart';
 import '../../widgets/countdown_timer.dart';
 
-/// Halaman pengerjaan ujian (layar penuh, anti-cheat)
+/// Halaman pengerjaan ujian (layar penuh, anti-cheat) — PRO-MAX UI/UX
 class ExamTakeScreen extends StatefulWidget {
   final String examId;
 
@@ -29,7 +29,6 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    // Mencegah kembali (will be handled by pop scope)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<ExamProvider>();
       if (provider.currentExam != null) {
@@ -68,10 +67,11 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
   Future<void> _autoSubmit() async {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Waktu ujian habis! Ujian dikumpulkan otomatis.'),
-        backgroundColor: AppTheme.warning,
-        duration: Duration(seconds: 5),
+      SnackBar(
+        content: const Text('Waktu ujian habis! Ujian dikumpulkan otomatis.',
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.orange[700],
+        duration: const Duration(seconds: 5),
       ),
     );
     await _submitExam();
@@ -93,7 +93,7 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         SnackBar(
           content: Text(context.read<ExamProvider>().error ??
               'Gagal mengumpulkan ujian'),
-          backgroundColor: AppTheme.error,
+          backgroundColor: Colors.red[700],
         ),
       );
     }
@@ -111,13 +111,16 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
       builder: (context) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Kumpulkan Ujian?'),
+        title: const Text('Kumpulkan Ujian?',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-                'Pastikan semua jawaban sudah benar sebelum mengumpulkan.'),
+            Text(
+              'Pastikan semua jawaban sudah benar sebelum mengumpulkan.',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
             const SizedBox(height: 16),
             _SubmitInfoRow(
               icon: Icons.check_circle_outline,
@@ -127,7 +130,7 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
             if (unanswered > 0)
               _SubmitInfoRow(
                 icon: Icons.help_outline,
-                color: AppTheme.warning,
+                color: Colors.orange[700]!,
                 text: '$unanswered soal belum dijawab',
               ),
             if (flagged > 0)
@@ -141,7 +144,9 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Periksa Lagi'),
+            child: Text('Periksa Lagi',
+                style: TextStyle(
+                    color: Colors.grey[700], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -149,7 +154,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
               _submitExam();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            child: const Text('Kumpulkan'),
+            child: const Text('Kumpulkan',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -175,17 +181,19 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         examId: widget.examId,
         onMaxViolationsReached: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Anda didiskualifikasi karena terlalu banyak pelanggaran!'),
-              backgroundColor: AppTheme.error,
-              duration: Duration(seconds: 5),
+            SnackBar(
+              content: const Text(
+                  'Anda didiskualifikasi karena terlalu banyak pelanggaran!',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              backgroundColor: Colors.red[700],
+              duration: const Duration(seconds: 5),
             ),
           );
           _submitExam();
         },
         child: Scaffold(
           key: _scaffoldKey,
+          backgroundColor: const Color(0xFFF8F9FA),
           endDrawer: _QuestionNavigationDrawer(
             questions: questions,
             currentIndex: currentIndex,
@@ -197,27 +205,31 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
           ),
           appBar: AppBar(
             automaticallyImplyLeading: false,
+            backgroundColor: Colors.white,
+            elevation: 0.5,
             title: Row(
               children: [
                 Expanded(
                   child: Text(
                     exam?.title ?? 'Ujian',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A2E),
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
             actions: [
-              // Countdown timer
               MiniCountdownTimer(
                 remainingSeconds: _remainingSeconds,
                 totalSeconds: _totalSeconds,
               ),
               const SizedBox(width: 8),
-              // Tombol navigasi soal
               IconButton(
-                icon: const Icon(Icons.grid_view),
+                icon: const Icon(Icons.grid_view, color: Color(0xFF1A1A2E)),
                 onPressed: () =>
                     _scaffoldKey.currentState?.openEndDrawer(),
                 tooltip: 'Navigasi Soal',
@@ -240,7 +252,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
                     // Pertanyaan indicator
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 8),
+                          horizontal: 20, vertical: 10),
+                      color: Colors.white,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -248,19 +261,19 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
                             'Soal ${currentIndex + 1} dari ${questions.length}',
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A2E),
                             ),
                           ),
                           if (currentQuestion != null)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: currentQuestion.isEssay
-                                    ? const Color(0xFFfef3c7)
-                                    : const Color(0xFFdbeafe),
-                                borderRadius: BorderRadius.circular(6),
+                                    ? const Color(0xFFFFFBEB)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 currentQuestion.isEssay
@@ -268,10 +281,10 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
                                     : 'Pilihan Ganda',
                                 style: TextStyle(
                                   color: currentQuestion.isEssay
-                                      ? const Color(0xFFd97706)
-                                      : const Color(0xFF2563eb),
+                                      ? const Color(0xFFD97706)
+                                      : const Color(0xFF2563EB),
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
@@ -340,22 +353,25 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
-          children: const [
-            Icon(Icons.warning_amber, color: AppTheme.warning),
-            SizedBox(width: 8),
-            Text('Peringatan!'),
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange[700], size: 24),
+            const SizedBox(width: 8),
+            const Text('Peringatan!',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Text(
+        content: Text(
           'Anda tidak diperbolehkan keluar dari halaman ujian. '
           'Melakukan hal ini akan dicatat sebagai pelanggaran.',
+          style: TextStyle(color: Colors.grey[700], fontSize: 14),
         ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            child: const Text('Kembali ke Ujian'),
+            child: const Text('Kembali ke Ujian',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -380,7 +396,8 @@ class _ProgressBar extends StatelessWidget {
     final progress = total > 0 ? answered / total : 0.0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      color: Colors.white,
       child: Column(
         children: [
           Row(
@@ -388,28 +405,29 @@ class _ProgressBar extends StatelessWidget {
             children: [
               Text(
                 '$answered/$total dijawab',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 '${(progress * 100).toStringAsFixed(0)}%',
                 style: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: AppTheme.border,
+              backgroundColor: Colors.grey[200],
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppTheme.primary),
             ),
@@ -446,43 +464,35 @@ class _BottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(top: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
       ),
       child: Row(
         children: [
-          // Tombol sebelumnya
           IconButton(
             onPressed: currentIndex > 0 ? onPrevious : null,
             icon: const Icon(Icons.arrow_back),
             color: AppTheme.primary,
-            disabledColor: AppTheme.textHint,
+            disabledColor: Colors.grey[400],
           ),
-
-          // Tombol tandai
           IconButton(
             onPressed: onFlag,
             icon: Icon(
               isFlagged ? Icons.flag : Icons.flag_outlined,
-              color: isFlagged ? AppTheme.accent : AppTheme.textSecondary,
+              color: isFlagged ? AppTheme.accent : Colors.grey[600],
             ),
           ),
-
           const Spacer(),
-
-          // Nomor soal
           Text(
             '${currentIndex + 1} / $totalQuestions',
             style: const TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
             ),
           ),
-
           const Spacer(),
-
-          // Tombol berikutnya atau kumpulkan
           if (currentIndex < totalQuestions - 1)
             IconButton(
               onPressed: onNext,
@@ -509,7 +519,8 @@ class _BottomNavigation extends StatelessWidget {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Kumpulkan'),
+                  : const Text('Kumpulkan',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -553,7 +564,7 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -572,7 +583,7 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                       _NavStat(
                         label: 'Belum',
                         value: '${questions.length - answered}',
-                        color: AppTheme.textHint,
+                        color: Colors.white60,
                       ),
                     ],
                   ),
@@ -615,9 +626,9 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                     textColor = AppTheme.success;
                     borderColor = AppTheme.success;
                   } else {
-                    bgColor = AppTheme.background;
-                    textColor = AppTheme.textSecondary;
-                    borderColor = AppTheme.border;
+                    bgColor = const Color(0xFFF8F9FA);
+                    textColor = Colors.grey[600]!;
+                    borderColor = Colors.grey[300]!;
                   }
 
                   return GestureDetector(
@@ -633,7 +644,7 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                           '${index + 1}',
                           style: TextStyle(
                             color: textColor,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
                           ),
                         ),
@@ -653,7 +664,6 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    // Access parent state to show submit confirmation
                     final state =
                         context.findAncestorStateOfType<_ExamTakeScreenState>();
                     state?._showSubmitConfirmation();
@@ -666,8 +676,8 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                   ),
                   child: const Text(
                     'Kumpulkan Ujian',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                 ),
               ),
@@ -676,15 +686,15 @@ class _QuestionNavigationDrawer extends StatelessWidget {
             // Legenda
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppTheme.border)),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.grey[200]!)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _LegendItem(color: AppTheme.success, label: 'Dijawab'),
                   _LegendItem(color: AppTheme.accent, label: 'Ditandai'),
-                  _LegendItem(color: AppTheme.textHint, label: 'Belum'),
+                  _LegendItem(color: Colors.grey[400]!, label: 'Belum'),
                 ],
               ),
             ),
@@ -710,11 +720,11 @@ class _NavStat extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+            style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
                 fontSize: 18)),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(label, style: TextStyle(color: color, fontSize: 11)),
       ],
     );
   }
@@ -742,7 +752,11 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700])),
       ],
     );
   }
@@ -765,7 +779,9 @@ class _SubmitInfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Text(text, style: TextStyle(fontSize: 14, color: color)),
+          Text(text,
+              style: TextStyle(
+                  fontSize: 14, color: color, fontWeight: FontWeight.w600)),
         ],
       ),
     );

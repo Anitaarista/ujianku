@@ -9,7 +9,7 @@ import '../../models/violation.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman beranda pengawas — dashboard lengkap
+/// Halaman beranda pengawas — PRO-MAX UI/UX
 class PengawasHomeScreen extends StatefulWidget {
   const PengawasHomeScreen({super.key});
 
@@ -42,18 +42,14 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
     final activeSession = proctorProvider.activeSession;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       body: RefreshIndicator(
         onRefresh: _refresh,
         color: AppTheme.primary,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // ── Header ──
-            SliverToBoxAdapter(
-              child: _PengawasHeader(user: user),
-            ),
-
-            // ── Sesi aktif ──
+            SliverToBoxAdapter(child: _PengawasHeader(user: user)),
             SliverToBoxAdapter(
               child: _ActiveSessionCard(
                 session: activeSession,
@@ -65,13 +61,9 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
                 },
               ),
             ),
-
-            // ── Statistik hari ini ──
             SliverToBoxAdapter(
               child: _TodayStats(sessions: proctorProvider.sessions),
             ),
-
-            // ── Quick Actions ──
             SliverToBoxAdapter(
               child: _QuickActions(
                 onNewSession: () => context.go('/pengawas/monitoring'),
@@ -79,8 +71,6 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
                 onReports: () => context.go('/pengawas/reports'),
               ),
             ),
-
-            // ── Pelanggaran terbaru ──
             if (proctorProvider.violations.isNotEmpty)
               SliverToBoxAdapter(
                 child: _RecentViolations(
@@ -88,27 +78,19 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
                   onViewAll: () => context.go('/pengawas/violations'),
                 ),
               ),
-
-            // ── Jadwal hari ini ──
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
-                child: Row(
-                  children: [
-                    Text(
-                      'Jadwal Hari Ini',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Spacer(),
-                  ],
+                child: Text(
+                  'Jadwal Hari Ini',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E),
+                  ),
                 ),
               ),
             ),
-
-            // ── Daftar sesi ──
             proctorProvider.isLoading
                 ? const SliverFillRemaining(
                     child: Center(
@@ -123,22 +105,29 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
                         ),
                       )
                     : proctorProvider.sessions.isEmpty
-                        ? const SliverFillRemaining(
+                        ? SliverFillRemaining(
                             child: Center(
                               child: Padding(
-                                padding: EdgeInsets.all(40),
+                                padding: const EdgeInsets.all(40),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.event_busy,
-                                        size: 64, color: AppTheme.textHint),
-                                    SizedBox(height: 16),
+                                        size: 64, color: Colors.grey[400]),
+                                    const SizedBox(height: 16),
                                     Text(
                                       'Tidak ada jadwal hari ini',
                                       style: TextStyle(
-                                        color: AppTheme.textSecondary,
+                                        color: Colors.grey[700],
                                         fontSize: 16,
+                                        fontWeight: FontWeight.w600,
                                       ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Jadwal pengawasan akan muncul di sini',
+                                      style: TextStyle(
+                                          color: Colors.grey[500], fontSize: 13),
                                     ),
                                   ],
                                 ),
@@ -171,7 +160,6 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
                               ),
                             ),
                           ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
@@ -180,7 +168,6 @@ class _PengawasHomeScreenState extends State<PengawasHomeScreen> {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Header pengawas
 class _PengawasHeader extends StatelessWidget {
   final dynamic user;
@@ -189,7 +176,7 @@ class _PengawasHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 56, 20, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF1e293b), Color(0xFF334155)],
@@ -197,8 +184,8 @@ class _PengawasHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
       ),
       child: Row(
@@ -210,7 +197,7 @@ class _PengawasHeader extends StatelessWidget {
               user?.initials ?? 'P',
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 fontSize: 20,
               ),
             ),
@@ -230,7 +217,7 @@ class _PengawasHeader extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -254,7 +241,7 @@ class _PengawasHeader extends StatelessWidget {
                   style: TextStyle(
                     color: AppTheme.primary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -266,7 +253,6 @@ class _PengawasHeader extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Kartu sesi aktif
 class _ActiveSessionCard extends StatelessWidget {
   final ProctorSession? session;
@@ -282,28 +268,37 @@ class _ActiveSessionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.background,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.monitor_outlined, size: 32, color: AppTheme.textHint),
-              SizedBox(width: 16),
+              Icon(Icons.monitor_outlined, size: 32, color: Colors.grey[400]),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Tidak Ada Sesi Aktif',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Color(0xFF1A1A2E)),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Tidak ada sesi pengawasan yang sedang berlangsung',
-                      style:
-                          TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      'Tidak ada sesi pengawasan berlangsung',
+                      style: TextStyle(
+                          color: Colors.grey[600], fontSize: 13),
                     ),
                   ],
                 ),
@@ -320,7 +315,14 @@ class _ActiveSessionCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: AppTheme.primaryGradient,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +331,7 @@ class _ActiveSessionCard extends StatelessWidget {
               children: [
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -344,38 +346,46 @@ class _ActiveSessionCard extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.fiber_manual_record,
-                    color: Colors.white.withValues(alpha: 0.5), size: 12),
-                const SizedBox(width: 4),
-                Text(
-                  'LIVE',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'LIVE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(
               session!.examTitle,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
             Text(
               session!.subject,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -411,6 +421,7 @@ class _ActiveSessionCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -421,7 +432,6 @@ class _ActiveSessionCard extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Chip info sesi
 class _SessionInfoChip extends StatelessWidget {
   final IconData icon;
@@ -434,15 +444,15 @@ class _SessionInfoChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white54, size: 14),
+        Icon(icon, color: Colors.white60, size: 14),
         const SizedBox(width: 4),
-        Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(text,
+            style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Statistik hari ini
 class _TodayStats extends StatelessWidget {
   final List<ProctorSession> sessions;
@@ -450,8 +460,7 @@ class _TodayStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeSessions =
-        sessions.where((s) => s.isActive).length;
+    final activeSessions = sessions.where((s) => s.isActive).length;
     final totalViolations =
         sessions.fold<int>(0, (sum, s) => sum + s.violationCount);
     final totalMonitored =
@@ -493,7 +502,6 @@ class _TodayStats extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Kartu statistik
 class _StatCard extends StatelessWidget {
   final IconData icon;
@@ -513,26 +521,33 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 22),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
-                color: color, fontSize: 20, fontWeight: FontWeight.w700),
+                color: color, fontSize: 24, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: Colors.grey[600],
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
@@ -542,7 +557,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Quick action buttons
 class _QuickActions extends StatelessWidget {
   final VoidCallback onNewSession;
@@ -564,7 +578,8 @@ class _QuickActions extends StatelessWidget {
         children: [
           const Text(
             'Aksi Cepat',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
           ),
           const SizedBox(height: 12),
           Row(
@@ -572,7 +587,7 @@ class _QuickActions extends StatelessWidget {
               Expanded(
                 child: _QuickActionCard(
                   icon: Icons.add_circle_outline,
-                  label: 'Mulai Sesi Baru',
+                  label: 'Mulai Sesi',
                   color: AppTheme.primary,
                   onTap: onNewSession,
                 ),
@@ -628,7 +643,7 @@ class _QuickActionCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.15)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -639,7 +654,7 @@ class _QuickActionCard extends StatelessWidget {
                 style: TextStyle(
                   color: color,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -653,7 +668,6 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Recent violations summary
 class _RecentViolations extends StatelessWidget {
   final List<Violation> violations;
@@ -677,12 +691,14 @@ class _RecentViolations extends StatelessWidget {
             children: [
               const Text(
                 'Pelanggaran Terbaru',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
               ),
               const Spacer(),
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('Lihat Semua', style: TextStyle(fontSize: 12)),
+                child: const Text('Lihat Semua',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -704,11 +720,18 @@ class _ViolationSummaryCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: severityColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: severityColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -721,14 +744,14 @@ class _ViolationSummaryCard extends StatelessWidget {
                 Text(
                   violation.studentName,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13),
+                      fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF1A1A2E)),
                 ),
                 Text(
                   violation.typeLabel,
                   style: TextStyle(
                     color: severityColor,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -739,9 +762,9 @@ class _ViolationSummaryCard extends StatelessWidget {
             children: [
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: severityColor.withValues(alpha: 0.15),
+                  color: severityColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -749,15 +772,15 @@ class _ViolationSummaryCard extends StatelessWidget {
                   style: TextStyle(
                     color: severityColor,
                     fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 violation.timeFormatted,
-                style: const TextStyle(
-                    color: AppTheme.textHint, fontSize: 11),
+                style: TextStyle(
+                    color: Colors.grey[500], fontSize: 11),
               ),
             ],
           ),
@@ -767,7 +790,6 @@ class _ViolationSummaryCard extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 /// Kartu sesi pengawasan
 class _SessionCard extends StatelessWidget {
   final ProctorSession session;
@@ -799,105 +821,128 @@ class _SessionCard extends StatelessWidget {
         break;
     }
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(statusIcon, color: statusColor, size: 22),
                     ),
-                    child: Icon(statusIcon, color: statusColor, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      session.examTitle,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      statusLabel,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        session.examTitle,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Color(0xFF1A1A2E)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 52),
-                child: Text(
-                  '${session.subject} - ${session.className}',
-                  style:
-                      const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 52),
-                child: Row(
-                  children: [
-                    Icon(Icons.people_outline,
-                        size: 16, color: AppTheme.textHint),
-                    const SizedBox(width: 4),
-                    Text('${session.totalStudents} siswa',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppTheme.textSecondary)),
-                    const SizedBox(width: 16),
-                    Icon(Icons.schedule, size: 16, color: AppTheme.textHint),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${session.startTimeFormatted} - ${session.endTimeFormatted}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppTheme.textSecondary),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              if (session.violationCount > 0) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.only(left: 52),
+                  padding: const EdgeInsets.only(left: 54),
+                  child: Text(
+                    '${session.subject} - ${session.className}',
+                    style: TextStyle(
+                        color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(left: 54),
                   child: Row(
                     children: [
-                      Icon(Icons.warning_amber,
-                          size: 16, color: AppTheme.warning),
+                      Icon(Icons.people_outline,
+                          size: 16, color: Colors.grey[500]),
+                      const SizedBox(width: 4),
+                      Text('${session.totalStudents} siswa',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(width: 16),
+                      Icon(Icons.schedule, size: 16, color: Colors.grey[500]),
                       const SizedBox(width: 4),
                       Text(
-                        '${session.violationCount} pelanggaran',
+                        '${session.startTimeFormatted} - ${session.endTimeFormatted}',
                         style: TextStyle(
-                            fontSize: 12, color: AppTheme.warning),
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                 ),
+                if (session.violationCount > 0) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 54),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber,
+                            size: 16, color: AppTheme.warning),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${session.violationCount} pelanggaran',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.warning,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -905,8 +950,7 @@ class _SessionCard extends StatelessWidget {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
-/// Error state widget
+/// Error state
 class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -921,12 +965,12 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 14),
+              style: TextStyle(
+                  color: Colors.grey[700], fontSize: 14, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

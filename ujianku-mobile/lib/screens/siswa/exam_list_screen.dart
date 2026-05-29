@@ -6,7 +6,7 @@ import '../../models/exam.dart';
 import '../../providers/exam_provider.dart';
 import '../../widgets/exam_card.dart';
 
-/// Halaman daftar ujian siswa
+/// Halaman daftar ujian siswa — PRO-MAX UI/UX
 class ExamListScreen extends StatefulWidget {
   const ExamListScreen({super.key});
 
@@ -53,7 +53,10 @@ class _ExamListScreenState extends State<ExamListScreen> {
     final examProvider = context.watch<ExamProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
         title: _showSearch
             ? TextField(
                 controller: _searchController,
@@ -61,17 +64,28 @@ class _ExamListScreenState extends State<ExamListScreen> {
                 decoration: InputDecoration(
                   hintText: 'Cari ujian...',
                   border: InputBorder.none,
-                  hintStyle: TextStyle(color: AppTheme.textHint),
+                  hintStyle: TextStyle(color: Colors.grey[500]),
                 ),
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF1A1A2E),
+                  fontWeight: FontWeight.w500,
+                ),
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
                 },
               )
-            : const Text('Daftar Ujian'),
+            : const Text(
+                'Daftar Ujian',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
         actions: [
           IconButton(
-            icon: Icon(_showSearch ? Icons.close : Icons.search),
+            icon: Icon(_showSearch ? Icons.close : Icons.search,
+                color: Colors.grey[700]),
             onPressed: () {
               setState(() {
                 _showSearch = !_showSearch;
@@ -101,23 +115,28 @@ class _ExamListScreenState extends State<ExamListScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppTheme.error.withValues(alpha: 0.08),
+                color: Colors.red[50],
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
+                border: Border.all(color: Colors.red[200]!),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: AppTheme.error, size: 20),
+                  Icon(Icons.error_outline, color: Colors.red[700], size: 22),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       examProvider.error!,
-                      style: const TextStyle(color: AppTheme.error, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   TextButton(
                     onPressed: () => context.read<ExamProvider>().loadExams(),
-                    child: const Text('Coba Lagi'),
+                    child: const Text('Coba Lagi',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -184,13 +203,13 @@ class _FilterTabs extends StatelessWidget {
                 selected: isActive,
                 onSelected: (_) => onFilterChanged(filter),
                 selectedColor: AppTheme.primary.withValues(alpha: 0.15),
-                backgroundColor: AppTheme.background,
+                backgroundColor: Colors.white,
                 side: BorderSide(
-                  color: isActive ? AppTheme.primary : AppTheme.border,
+                  color: isActive ? AppTheme.primary : Colors.grey[300]!,
                 ),
                 labelStyle: TextStyle(
-                  color: isActive ? AppTheme.primary : AppTheme.textSecondary,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? AppTheme.primary : Colors.grey[700],
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 13,
                 ),
               ),
@@ -217,14 +236,21 @@ class _EmptyExamList extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.search_off, size: 64, color: AppTheme.textHint),
+              Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 'Ujian tidak ditemukan',
                 style: TextStyle(
-                  color: AppTheme.textSecondary,
+                  color: Colors.grey[700],
                   fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Coba kata kunci lain',
+                style: TextStyle(color: Colors.grey[500], fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -234,23 +260,28 @@ class _EmptyExamList extends StatelessWidget {
     }
 
     String message;
+    String subtitle;
     IconData icon;
 
     switch (filter) {
       case ExamFilter.ongoing:
-        message = 'Tidak ada ujian yang sedang berlangsung';
+        message = 'Tidak ada ujian berlangsung';
+        subtitle = 'Ujian yang sedang aktif akan muncul di sini';
         icon = Icons.play_circle_outline;
         break;
       case ExamFilter.upcoming:
-        message = 'Tidak ada ujian yang akan datang';
+        message = 'Tidak ada ujian mendatang';
+        subtitle = 'Ujian terjadwal akan muncul di sini';
         icon = Icons.schedule;
         break;
       case ExamFilter.completed:
-        message = 'Belum ada ujian yang selesai';
+        message = 'Belum ada ujian selesai';
+        subtitle = 'Ujian yang sudah dikerjakan akan muncul di sini';
         icon = Icons.check_circle_outline;
         break;
       default:
         message = 'Belum ada ujian tersedia';
+        subtitle = 'Ujian akan muncul ketika tersedia untuk Anda';
         icon = Icons.assignment_outlined;
     }
 
@@ -260,14 +291,21 @@ class _EmptyExamList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppTheme.textHint),
+            Icon(icon, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               message,
               style: TextStyle(
-                color: AppTheme.textSecondary,
+                color: Colors.grey[700],
                 fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(color: Colors.grey[500], fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],

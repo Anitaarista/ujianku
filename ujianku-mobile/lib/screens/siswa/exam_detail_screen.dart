@@ -8,7 +8,7 @@ import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/countdown_timer.dart';
 
-/// Halaman detail ujian sebelum memulai
+/// Halaman detail ujian — PRO-MAX UI/UX
 class ExamDetailScreen extends StatefulWidget {
   final String examId;
 
@@ -50,10 +50,19 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     final exam = examProvider.currentExam;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Detail Ujian'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Detail Ujian',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A2E)),
           onPressed: () {
             examProvider.resetCurrentExam();
             context.pop();
@@ -76,11 +85,15 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
             const SizedBox(height: 16),
             Text(
               error ?? 'Gagal memuat detail ujian',
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -109,6 +122,13 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             decoration: BoxDecoration(
               gradient: AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +137,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
@@ -127,7 +147,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -135,7 +155,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                     if (exam.requiresToken)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
@@ -150,7 +170,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -158,26 +178,27 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Text(
                   exam.title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   exam.subject,
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.75),
                     fontSize: 16,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 if (exam.description != null &&
                     exam.description!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -187,8 +208,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                     ),
                     child: Text(
                       exam.description!,
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 13,
                         height: 1.5,
                       ),
@@ -207,9 +228,16 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +246,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                   'Informasi Ujian',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -292,7 +321,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               'Petunjuk Ujian',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E),
               ),
             ),
             const SizedBox(height: 12),
@@ -300,13 +330,18 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.background,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: Colors.grey[200]!),
               ),
               child: Text(
                 exam.instructions!,
-                style: const TextStyle(fontSize: 14, height: 1.6),
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -317,23 +352,24 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFfef3c7).withValues(alpha: 0.5),
+              color: const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFfcd34d)),
+              border: Border.all(color: const Color(0xFFFCD34D)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.warning_amber,
-                        color: Color(0xFFd97706), size: 20),
-                    SizedBox(width: 8),
-                    Text(
+                  children: [
+                    const Icon(Icons.warning_amber,
+                        color: Color(0xFFD97706), size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
                       'Peraturan Ujian',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFd97706),
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFD97706),
+                        fontSize: 15,
                       ),
                     ),
                   ],
@@ -357,21 +393,24 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               'Token Ujian',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Masukkan token yang diberikan oleh pengawas untuk memulai ujian.',
               style: TextStyle(
                 fontSize: 13,
-                color: AppTheme.textSecondary,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w400,
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _tokenController,
               decoration: InputDecoration(
+                labelText: 'Token Ujian',
                 hintText: 'Masukkan token ujian',
                 prefixIcon: const Icon(Icons.vpn_key_outlined),
                 suffixIcon: IconButton(
@@ -394,12 +433,12 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             decoration: BoxDecoration(
               color: _agreedToRules
                   ? AppTheme.primary.withValues(alpha: 0.05)
-                  : AppTheme.background,
+                  : const Color(0xFFF8F9FA),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _agreedToRules
                     ? AppTheme.primary.withValues(alpha: 0.3)
-                    : AppTheme.border,
+                    : Colors.grey[300]!,
               ),
             ),
             child: CheckboxListTile(
@@ -409,9 +448,13 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               },
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
-              title: const Text(
+              title: Text(
                 'Saya memahami dan setuju dengan peraturan ujian',
-                style: TextStyle(fontSize: 14),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
               ),
             ),
           ),
@@ -462,9 +505,9 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(context.read<ExamProvider>().error ?? 'Gagal memulai ujian'),
-          backgroundColor: AppTheme.error,
+          content: Text(
+              context.read<ExamProvider>().error ?? 'Gagal memulai ujian'),
+          backgroundColor: Colors.red[700],
         ),
       );
     }
@@ -489,13 +532,14 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppTheme.textSecondary),
+          Icon(icon, size: 20, color: Colors.grey[600]),
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: Colors.grey[600],
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const Spacer(),
@@ -503,8 +547,9 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 fontSize: 14,
+                color: Color(0xFF1A1A2E),
               ),
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
@@ -530,11 +575,16 @@ class _RuleItem extends StatelessWidget {
         children: [
           const Text('•  ',
               style: TextStyle(
-                  fontWeight: FontWeight.w700, color: Color(0xFFd97706))),
+                  fontWeight: FontWeight.w700, color: Color(0xFFD97706))),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 13, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

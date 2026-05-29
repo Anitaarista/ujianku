@@ -1,100 +1,161 @@
-# UjianKu Mobile - Siswa Screens Enhancement Worklog
+# UjianKu Mobile App - Complete Redesign Worklog
 
 ## Date: 2026-03-04
 
 ## Summary
-Enhanced all 6 Siswa screens with full API integration, real data binding, and improved UI/UX.
+Complete mobile app redesign with PRO-MAX UI/UX, role restriction for mobile (Siswa & Pengawas only), and removal of Admin/Guru routes.
 
-## Files Modified
-All files are in `/home/z/my-project/ujianku-mobile/lib/screens/siswa/`
+---
 
-### 1. home_screen.dart
-**Changes:**
-- Added direct API integration via `ApiService` to fetch results from `/siswa/results` endpoint
-- Replaced placeholder stats (avgScore=0, rank='-') with real computed stats from API data
-- Stats cards now show: Ujian Mendatang (from ExamProvider), Ujian Selesai (from API), Rata-rata Nilai (computed from API)
-- Added Quick Actions section with 3 buttons: Lihat Ujian, Hasil Terakhir, Profil
-- Enhanced upcoming exam cards with action buttons (Mulai Ujian / Lihat Detail)
-- Recent Results section now uses `ExamResult` model with score color indicators
-- Pull-to-refresh refreshes both exams and results data
-- Removed unused imports
+## Changes Made
 
-### 2. exam_list_screen.dart
-**Changes:**
-- Replaced system SearchDelegate with inline search bar in AppBar (better UX)
-- Search filters by title, subject, and teacher name
-- Added error state banner with retry button
-- Added empty state for search results ("Ujian tidak ditemukan")
-- Improved loading state (only shows spinner on initial load, not on filter change)
-- Cleaned up unused imports
+### 1. Login Screen Redesign (`lib/screens/login_screen.dart`)
+- **Role Restriction**: Mobile now ONLY allows SISWA and PENGAWAS roles
+- If API returns ADMIN or GURU role after login, shows error: "Admin/Guru harus login melalui website UjianKu." and clears user data
+- **PRO-MAX UI/UX Redesign**:
+  - Modern gradient background (dark emerald to teal)
+  - Large app logo with white glow effect (boxShadow)
+  - Clean white bottom sheet form area with rounded top corners
+  - High contrast text - all text clearly readable (Color(0xFF1A1A2E) for primary, Colors.grey[600] for secondary)
+  - Proper text field styling with clear labels and focus animations
+  - Professional gradient login button with shadow
+  - Smooth animations (fadeIn, slideUp) on load
+  - Subtle app version text at bottom
 
-### 3. exam_detail_screen.dart
-**Changes:**
-- Added `flutter/services.dart` import for Clipboard functionality
-- Implemented `_pasteFromClipboard()` method for token input
-- Added description display in the main header card
-- Wrapped info section in a styled Container card for better visual hierarchy
-- Added "Jawaban tersimpan otomatis" and "Soal acak" rules
-- Enhanced checkbox styling with dynamic border color
-- Added conditional "Kembali ke Beranda" button when exam is not startable
-- Better status messaging in start button
-- Reset current exam state when navigating back
+### 2. Routes Cleanup (`lib/config/routes.dart`)
+- **REMOVED** all Admin routes (`/admin`, `/admin/users`, `/admin/settings`) and `AdminShell`
+- **REMOVED** all Guru routes (`/guru`, `/guru/bank-soal`, `/guru/exams`, `/guru/results`) and `GuruShell`
+- **REMOVED** all placeholder screens (`AdminUsersScreen`, `AdminSettingsScreen`, `GuruBankSoalScreen`, `GuruExamsScreen`, `GuruResultsScreen`)
+- **REMOVED** imports for admin/home_screen.dart and guru/home_screen.dart
+- **KEPT** only Siswa and Pengawas routes with their shells
+- Updated BottomNavigationBar styling: `selectedItemColor: AppTheme.primary`, `unselectedItemColor: Colors.grey`
 
-### 4. exam_take_screen.dart
-**Changes:**
-- Added `PageController` for programmatic page navigation
-- Question navigation now animates (slide transition) between questions
-- Added "Soal X dari Y" indicator with question type badge
-- Fixed question navigation drawer to sync with page controller
-- Added "Kumpulkan Ujian" button in the navigation drawer
-- Better question type display in the question indicator area
-- Removed unused `Helpers` import
+### 3. App Configuration (`lib/app.dart`)
+- Initial location now only allows `/siswa` or `/pengawas`
+- If stored role is admin/guru, clears storage and redirects to `/` (splash/login)
+- Removed switch cases for admin/guru
 
-### 5. exam_result_screen.dart
-**Changes:**
-- Added full question review functionality (`_buildQuestionReview`)
-- Toggle between Summary view and Review Soal view via AppBar action
-- Each review card shows: question number, question text, your answer, correct answer, explanation
-- Color-coded review cards (green for correct, red for wrong, gray for unanswered)
-- Added explanation/pembahasan section in review cards
-- Enhanced time display with hours/minutes/seconds breakdown
-- Added completion date display
-- Added Grade row in score breakdown
-- Review Soal button at bottom of summary view
+### 4. Deleted Admin/Guru Directories
+- Deleted `lib/screens/admin/` directory entirely
+- Deleted `lib/screens/guru/` directory entirely
 
-### 6. profile_screen.dart
-**Changes:**
-- Added real API stats loading from `/siswa/results` endpoint
-- Stats now show: Ujian Selesai, Rata-rata, Nilai Tertinggi (all from real data)
-- Added edit profile dialog with name, NISN, and school fields
-- Edit calls `AuthProvider.updateProfile()` which hits `PUT /siswa/profile`
-- Added pull-to-refresh for profile data
-- Class name shown in badge instead of just "Siswa"
-- Added App Version info row (from AppConstants)
-- Added Privacy Policy and Help links (placeholder)
-- Removed dark mode toggle (not implemented in app)
-- Added loading state for stats section
-- Better stat item styling with borders
+### 5. Constants Cleanup (`lib/utils/constants.dart`)
+- Removed `routeAdminHome` and `routeGuruHome` constants
+- Added comment noting mobile only supports Siswa and Pengawas
 
-## Import Fixes Applied
-- `home_screen.dart`: Added `../../config/api_config.dart`, removed unused `flutter/services.dart` and `utils/constants.dart`
-- `exam_list_screen.dart`: Removed unused `../../utils/helpers.dart`
-- `exam_take_screen.dart`: Removed unused `../../utils/helpers.dart`
-- `profile_screen.dart`: Added `../../config/api_config.dart`
+### 6. Siswa Screen Redesigns
 
-## API Endpoints Used
-- `GET /siswa/results` - Fetch all exam results (used in home, profile)
-- `GET /siswa/exams` - Fetch exam list (via ExamProvider)
-- `GET /exams/[id]` - Fetch exam detail (via ExamProvider)
-- `POST /exams/[id]/start` - Start exam (via ExamProvider)
-- `POST /exams/[id]/answer` - Submit answer (via ExamProvider)
-- `POST /exams/[id]/submit` - Submit exam (via ExamProvider)
-- `GET /exams/[id]/result` - Get exam result (via ExamProvider)
-- `PUT /siswa/profile` - Update profile (via AuthProvider)
+#### `home_screen.dart`
+- Screen background: `Color(0xFFF8F9FA)` (light grey)
+- White stat cards with proper shadows and borders
+- Stats numbers: 24px, FontWeight.w800, colored
+- Labels: Colors.grey[600], FontWeight.w600
+- Quick action buttons: White background, grey border, 48x48 icon containers
+- Exam cards: White with boxShadow
+- Empty state: 64px icon, Colors.grey[400], bold message, subtitle
+- Header: Gradient with proper padding
 
-## Notes
-- No files outside `/screens/siswa/` were modified
-- All API calls use existing services (ExamService, AuthService, ApiService)
-- ExamProvider and AuthProvider are used via Provider pattern
-- Results data is fetched directly via ApiService in screens that need it (home, profile)
-  since ExamProvider doesn't have a "loadAllResults" method and we can't modify providers
+#### `exam_list_screen.dart`
+- White AppBar with elevation 0.5
+- Search: Dark text (Color(0xFF1A1A2E)), grey hint
+- Filter chips: White background, proper selected/unselected colors
+- Error state: Red[50] background, red[700] text
+- Empty states: Large icon, bold message, subtitle helper
+
+#### `exam_detail_screen.dart`
+- Gradient header card with shadow
+- Info section: White card with grey border and shadow
+- Info rows: Dark label values (FontWeight.w700, Color(0xFF1A1A2E))
+- Rules section: Amber background, dark text (Colors.grey[800])
+- Checkbox: Clean styling with border states
+
+#### `exam_take_screen.dart`
+- White AppBar, dark title text
+- Progress bar: Grey[200] background, primary color
+- Question indicator: White container, dark text
+- Bottom nav: White with grey border, dark text
+- Navigation drawer: Gradient header, colored status indicators
+- Exit warning: Orange warning icon, grey body text
+
+#### `exam_result_screen.dart`
+- White score card with shadow (instead of colored background)
+- Score circle: Colored with proper contrast
+- Pass/fail status: Colored background, bold text
+- Stat boxes: Colored with alpha, bold values
+- Score rows: Grey icon, dark values, bold total
+- Review cards: White with colored border, proper contrast
+
+#### `profile_screen.dart`
+- Gradient header with shadow
+- Info sections: White cards with shadow and border
+- Info rows: Dark values (FontWeight.w700), grey labels
+- Stats: Colored containers, bold values
+- Settings: Dark text, grey secondary text
+- Logout: Danger variant button
+
+### 7. Pengawas Screen Redesigns
+
+#### `home_screen.dart`
+- Dark header gradient with role badge
+- Session card: White with shadow, colored status badges
+- Stats: White cards with colored accents, bold numbers
+- Quick actions: Colored background with matching icons and labels
+- Violation cards: White with colored border, bold student names
+- Error state: Red icon, grey message, outline retry button
+
+#### `monitoring_screen.dart`
+- White AppBar, dark text
+- Session info bar: White with grey border
+- Status pills: Colored with alpha background
+- Student list items: White with shadow, dark names
+- Session selection: White cards with rounded corners
+- Auto-refresh indicator: Primary with alpha
+
+#### `violation_list_screen.dart`
+- White AppBar, dark text
+- Search: Dark text style, grey hint
+- Filter chips: Compact, primary delete icon
+- Summary bar: Grey background, colored severity badges
+- Violation cards: White with colored border, bold student names
+- Detail sheet: White with proper contrast
+- Empty state: Large icon, bold message, subtitle
+
+#### `student_detail_screen.dart`
+- Dark gradient header with avatar
+- White status/progress card with shadow
+- Dark text values, grey secondary
+- Violation history: White cards with colored border
+- Action buttons: Outline warn, danger disqualify, ghost allow
+- Confirmation dialogs: Dark text, grey body
+
+#### `report_screen.dart`
+- Gradient header with shadow
+- Stat cards: Colored with alpha, bold numbers
+- Completion bar: White card with shadow
+- Violation section: Conditional coloring, bold numbers
+- Student table: Grey header, white rows, dark text
+- Action buttons: Outline PDF, danger end session
+
+---
+
+## Design Principles Applied
+
+1. **Text Contrast**: Dark text on light backgrounds (`Color(0xFF1A1A2E)` or `Colors.grey[900]`)
+2. **Secondary Text**: `Colors.grey[600]` minimum - never lighter than grey[500]
+3. **Card Design**: White background, subtle shadow (`BoxShadow blurRadius: 8`), `borderRadius: 16`
+4. **Stats Numbers**: Font size 24+, `FontWeight.w800`, colored
+5. **Status Badges**: Dark text on colored backgrounds, or colored text on white with colored border
+6. **Bottom Navigation**: `selectedItemColor: AppTheme.primary`, `unselectedItemColor: Colors.grey`
+7. **App Bars**: White background, dark title text, `elevation: 0.5`
+8. **Empty States**: Large icon (64px), clear message text, helper subtitle
+9. **Error States**: Red icon, clear error text, retry button
+10. **Loading States**: `CircularProgressIndicator` with `AppTheme.primary` color
+
+## Color Standards Used
+- Primary text: `Color(0xFF1A1A2E)` / `Colors.grey[900]`
+- Secondary text: `Colors.grey[600]`
+- Hint text: `Colors.grey[500]`
+- Error text: `Colors.red[700]`
+- Success text: `Colors.green[700]`
+- Card backgrounds: `Colors.white`
+- Screen background: `Color(0xFFF8F9FA)` / `Colors.grey[50]`

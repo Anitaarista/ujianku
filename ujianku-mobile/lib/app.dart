@@ -36,21 +36,24 @@ class _UjianKuAppState extends State<UjianKuApp> {
     final role = await _storage.getRole();
 
     String initialLocation;
+
     if (isLoggedIn && role != null) {
-      switch (role.toLowerCase()) {
-        case 'admin':
-          initialLocation = '/admin';
-          break;
-        case 'guru':
-          initialLocation = '/guru';
-          break;
-        case 'pengawas':
-          initialLocation = '/pengawas';
-          break;
-        case 'siswa':
-        default:
-          initialLocation = '/siswa';
-          break;
+      final roleLower = role.toLowerCase();
+
+      // Jika role adalah admin atau guru, bersihkan storage dan redirect ke login
+      if (roleLower == 'admin' || roleLower == 'guru') {
+        await _storage.clearAll();
+        initialLocation = '/';
+      } else {
+        switch (roleLower) {
+          case 'pengawas':
+            initialLocation = '/pengawas';
+            break;
+          case 'siswa':
+          default:
+            initialLocation = '/siswa';
+            break;
+        }
       }
     } else {
       initialLocation = '/';

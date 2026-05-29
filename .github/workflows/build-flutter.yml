@@ -5,50 +5,130 @@ on:
     branches: [main]
     paths:
       - 'ujianku-mobile/**'
+      - '.github/workflows/build-flutter.yml'
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (release or debug)'
+        required: false
+        default: 'release'
+
+env:
+  FLUTTER_VERSION: '3.27.1'
+  JAVA_VERSION: '17'
+  WORKING_DIR: ujianku-mobile
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
 
+      - name: Cache Flutter pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/.dart_tool
+            ${{ env.WORKING_DIR }}/.pub-cache
+            ~/.pub-cache
+          key: flutter-pub-${{ runner.os }}-${{ hashFiles('ujianku-mobile/pubspec.yaml', 'ujianku-mobile/pubspec.lock') }}
+          restore-keys: |
+            flutter-pub-${{ runner.os }}-
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/android/.gradle
+            ${{ env.WORKING_DIR }}/android/build
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('ujianku-mobile/android/**/*.gradle*', 'ujianku-mobile/android/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Decode Android signing key
+        if: github.event.inputs.build_type == 'release' || github.event.inputs.build_type == ''
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ env.WORKING_DIR }}/android/app/upload-keystore.jks
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> ${{ env.WORKING_DIR }}/android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> ${{ env.WORKING_DIR }}/android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> ${{ env.WORKING_DIR }}/android/key.properties
+          echo "storeFile=upload-keystore.jks" >> ${{ env.WORKING_DIR }}/android/key.properties
+        shell: bash
+
       - name: Install dependencies
-        working-directory: ujianku-mobile
+        working-directory: ${{ env.WORKING_DIR }}
         run: flutter pub get
 
-      - name: Build APK
-        working-directory: ujianku-mobile
+      - name: Run Flutter analyzer
+        working-directory: ${{ env.WORKING_DIR }}
+        run: flutter analyze --no-fatal-infos || true
+
+      - name: Build APK (Release)
+        if: github.event.inputs.build_type == 'release' || github.event.inputs.build_type == ''
+        working-directory: ${{ env.WORKING_DIR }}
         run: flutter build apk --release
+
+      - name: Build APK (Debug)
+        if: github.event.inputs.build_type == 'debug'
+        working-directory: ${{ env.WORKING_DIR }}
+        run: flutter build apk --debug
+
+      - name: Determine APK path
+        id: apk
+        run: |
+          if [ "${{ github.event.inputs.build_type }}" = "debug" ]; then
+            echo "path=ujianku-mobile/build/app/outputs/flutter-apk/app-debug.apk" >> $GITHUB_OUTPUT
+            echo "suffix=-debug" >> $GITHUB_OUTPUT
+          else
+            echo "path=ujianku-mobile/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
+            echo "suffix=" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ujianku-release-apk
-          path: ujianku-mobile/build/app/outputs/flutter-apk/app-release.apk
+          name: ujianku${{ steps.apk.outputs.suffix }}-apk
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 30
 
       - name: Create GitHub Release
+        if: github.event.inputs.build_type == 'release' || github.event.inputs.build_type == ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: UjianKu v1.0.${{ github.run_number }}
-          files: ujianku-mobile/build/app/outputs/flutter-apk/app-release.apk
+          files: ${{ steps.apk.outputs.path }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Clean up signing key
+        if: always()
+        run: |
+          rm -f ${{ env.WORKING_DIR }}/android/app/upload-keystore.jks
+          rm -f ${{ env.WORKING_DIR }}/android/key.properties
+        shell: bash

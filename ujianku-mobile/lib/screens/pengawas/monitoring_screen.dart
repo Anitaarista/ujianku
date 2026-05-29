@@ -10,7 +10,7 @@ import '../../widgets/violation_alert_card.dart';
 import '../../widgets/countdown_timer.dart';
 import '../../utils/helpers.dart';
 
-/// Halaman monitoring real-time pengawas
+/// Halaman monitoring real-time pengawas — PRO-MAX UI/UX
 class MonitoringScreen extends StatefulWidget {
   const MonitoringScreen({super.key});
 
@@ -59,10 +59,18 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     final proctorProvider = context.watch<ProctorProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Monitoring Ujian'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Monitoring Ujian',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         actions: [
-          // Timer sesi
           if (_selectedSession != null && _selectedSession!.isActive)
             Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -71,10 +79,10 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                 totalSeconds: _selectedSession!.duration * 60,
               ),
             ),
-          // Toggle grid/list view
           if (_selectedSession != null)
             IconButton(
-              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view,
+                  color: Colors.grey[700]),
               onPressed: () => setState(() => _isGridView = !_isGridView),
               tooltip: _isGridView ? 'Tampilan List' : 'Tampilan Grid',
             ),
@@ -86,7 +94,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     );
   }
 
-  /// Pemilih sesi jika belum ada sesi aktif
   Widget _buildSessionSelector(ProctorProvider proctorProvider) {
     if (proctorProvider.isLoading) {
       return const Center(
@@ -104,18 +111,28 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.link_off, size: 64, color: AppTheme.textHint),
+              Icon(Icons.link_off, size: 64, color: Colors.grey[400]),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Tidak ada sesi untuk dimonitor',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+                style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Sesi ujian aktif akan muncul di sini',
+                style: TextStyle(color: Colors.grey[500], fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () => proctorProvider.loadSessions(),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Muat Ulang'),
+                label: const Text('Muat Ulang',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -128,12 +145,15 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
       children: [
         const Text(
           'Pilih Sesi untuk Monitoring',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E)),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Pilih sesi ujian yang ingin Anda awasi secara real-time',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          style: TextStyle(color: Colors.grey[600], fontSize: 13),
         ),
         const SizedBox(height: 16),
         ...activeSessions.map((session) => _SessionSelectionCard(
@@ -148,11 +168,9 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     );
   }
 
-  /// Tampilan monitoring real-time
   Widget _buildMonitoringView(ProctorProvider proctorProvider) {
     return Column(
       children: [
-        // Info bar sesi
         _SessionInfoBar(
           session: _selectedSession!,
           activeCount: proctorProvider.activeCount,
@@ -166,20 +184,21 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
           onEndSession: () => _showEndSessionDialog(proctorProvider),
         ),
 
-        // Auto-refresh indicator
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           color: AppTheme.primary.withValues(alpha: 0.05),
           child: Row(
             children: [
-              Icon(Icons.autorenew, size: 14, color: AppTheme.primary.withValues(alpha: 0.7)),
+              Icon(Icons.autorenew,
+                  size: 14, color: AppTheme.primary.withValues(alpha: 0.7)),
               const SizedBox(width: 6),
               Text(
                 'Auto-refresh setiap 30 detik',
                 style: TextStyle(
                   color: AppTheme.primary.withValues(alpha: 0.7),
                   fontSize: 11,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -196,7 +215,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
           ),
         ),
 
-        // Grid / List status siswa
         Expanded(
           child: proctorProvider.students.isEmpty
               ? const Center(
@@ -207,7 +225,7 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                       SizedBox(height: 16),
                       Text(
                         'Memuat data siswa...',
-                        style: TextStyle(color: AppTheme.textSecondary),
+                        style: TextStyle(color: Colors.grey),
                       ),
                     ],
                   ),
@@ -217,7 +235,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                   : _buildStudentList(proctorProvider),
         ),
 
-        // Panel pelanggaran terbaru
         if (proctorProvider.recentViolations.isNotEmpty)
           _RecentViolationsPanel(
             violations: proctorProvider.recentViolations,
@@ -227,7 +244,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     );
   }
 
-  /// Grid tampilan siswa
   Widget _buildStudentGrid(ProctorProvider proctorProvider) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -250,7 +266,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     );
   }
 
-  /// List tampilan siswa
   Widget _buildStudentList(ProctorProvider proctorProvider) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -259,117 +274,130 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
         final student = proctorProvider.students[index];
         final statusColor = _getStudentStatusColor(student.statusColor);
 
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 8),
-          child: InkWell(
-            onTap: () => context.push(
-              '/pengawas/sessions/${_selectedSession!.id}/students/${student.studentId}',
-            ),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  // Avatar + status dot
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor:
-                            statusColor.withValues(alpha: 0.15),
-                        child: Text(
-                          Helpers.getInitials(student.studentName),
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: Colors.white, width: 2),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey[200]!),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push(
+                '/pengawas/sessions/${_selectedSession!.id}/students/${student.studentId}',
+              ),
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Stack(
                       children: [
-                        Text(
-                          student.studentName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 14),
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Text(
-                              student.statusLabel,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor:
+                              statusColor.withValues(alpha: 0.15),
+                          child: Text(
+                            Helpers.getInitials(student.studentName),
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
                             ),
-                            if (student.violationCount > 0) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                '${student.violationCount} pelanggaran',
-                                style: TextStyle(
-                                  color: AppTheme.warning,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ],
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white, width: 2),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-
-                  // Progress
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${(student.progressPercentage * 100).toInt()}%',
-                        style: TextStyle(
-                          color: AppTheme.primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            student.studentName,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: Color(0xFF1A1A2E)),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                student.statusLabel,
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (student.violationCount > 0) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${student.violationCount} pelanggaran',
+                                  style: TextStyle(
+                                    color: AppTheme.warning,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 48,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: student.progressPercentage,
-                            minHeight: 4,
-                            backgroundColor: AppTheme.border,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                AppTheme.primary),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${(student.progressPercentage * 100).toInt()}%',
+                          style: const TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: 48,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: student.progressPercentage,
+                              minHeight: 4,
+                              backgroundColor: Colors.grey[200],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppTheme.primary),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -389,7 +417,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
     }
   }
 
-  /// Dialog konfirmasi akhiri sesi
   Future<void> _showEndSessionDialog(ProctorProvider proctorProvider) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -398,25 +425,30 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.stop_circle, color: AppTheme.error, size: 24),
+            Icon(Icons.stop_circle, color: Colors.red[700], size: 24),
             const SizedBox(width: 8),
-            const Text('Akhiri Sesi?'),
+            const Text('Akhiri Sesi?',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Text(
+        content: Text(
           'Sesi akan diakhiri dan semua siswa yang masih mengerjakan ujian '
           'akan dikumpulkan otomatis. Tindakan ini tidak dapat dibatalkan.',
+          style: TextStyle(color: Colors.grey[700]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal',
+                style: TextStyle(
+                    color: Colors.grey[600], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.error),
-            child: const Text('Akhiri Sesi'),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            child: const Text('Akhiri Sesi',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -465,9 +497,9 @@ class _SessionInfoBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(bottom: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
       ),
       child: Column(
         children: [
@@ -480,14 +512,16 @@ class _SessionInfoBar extends StatelessWidget {
                     Text(
                       session.examTitle,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: Color(0xFF1A1A2E)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${session.className} - ${session.startTimeFormatted} s/d ${session.endTimeFormatted}',
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
+                      style: TextStyle(
+                          color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),
@@ -572,7 +606,7 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
@@ -587,7 +621,7 @@ class _StatusPill extends StatelessWidget {
             style: TextStyle(
               color: color,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -605,73 +639,92 @@ class _SessionSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: session.isActive
-                      ? AppTheme.success.withValues(alpha: 0.1)
-                      : AppTheme.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  session.isActive ? Icons.play_circle : Icons.schedule,
-                  color: session.isActive ? AppTheme.success : AppTheme.accent,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      session.examTitle,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      '${session.className} - ${session.totalStudents} siswa',
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${session.startTimeFormatted} - ${session.endTimeFormatted}',
-                      style: const TextStyle(
-                          color: AppTheme.textHint, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: session.isActive
-                      ? AppTheme.success.withValues(alpha: 0.1)
-                      : AppTheme.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  session.isActive ? 'LIVE' : 'Terjadwal',
-                  style: TextStyle(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
                     color: session.isActive
-                        ? AppTheme.success
-                        : AppTheme.accent,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                        ? AppTheme.success.withValues(alpha: 0.1)
+                        : AppTheme.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    session.isActive ? Icons.play_circle : Icons.schedule,
+                    color:
+                        session.isActive ? AppTheme.success : AppTheme.accent,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.examTitle,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
+                      ),
+                      Text(
+                        '${session.className} - ${session.totalStudents} siswa',
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${session.startTimeFormatted} - ${session.endTimeFormatted}',
+                        style: TextStyle(
+                            color: Colors.grey[500], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: session.isActive
+                        ? AppTheme.success.withValues(alpha: 0.1)
+                        : AppTheme.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    session.isActive ? 'LIVE' : 'Terjadwal',
+                    style: TextStyle(
+                      color: session.isActive
+                          ? AppTheme.success
+                          : AppTheme.accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -693,9 +746,9 @@ class _RecentViolationsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxHeight: 200),
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(top: BorderSide(color: AppTheme.border)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -704,18 +757,21 @@ class _RecentViolationsPanel extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber,
+                Icon(Icons.warning_amber,
                     color: AppTheme.warning, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   'Pelanggaran Terbaru',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Color(0xFF1A1A2E)),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: onViewAll,
-                  child:
-                      const Text('Lihat Semua', style: TextStyle(fontSize: 12)),
+                  child: const Text('Lihat Semua',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

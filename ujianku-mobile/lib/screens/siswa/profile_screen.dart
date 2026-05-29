@@ -10,7 +10,7 @@ import '../../utils/helpers.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman profil siswa
+/// Halaman profil siswa — PRO-MAX UI/UX
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -73,7 +73,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Edit Profil'),
+        title: const Text('Edit Profil',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: SingleChildScrollView(
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
@@ -95,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  enabled: false, // Email usually can't be changed
+                  enabled: false,
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -121,7 +122,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text('Batal',
+                style:
+                    TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -157,7 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            child: const Text('Simpan'),
+            child: const Text('Simpan',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -169,13 +173,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar dari Akun?'),
-        content:
-            const Text('Anda akan keluar dari akun dan harus login kembali.'),
+        title: const Text('Keluar dari Akun?',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Text(
+          'Anda akan keluar dari akun dan harus login kembali.',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text('Batal',
+                style:
+                    TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -186,7 +195,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Keluar'),
+            child: const Text('Keluar',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -199,11 +209,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authProvider.user;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Profil'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Profil',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined),
+            icon: const Icon(Icons.edit_outlined, color: Color(0xFF1A1A2E)),
             onPressed: _showEditProfileDialog,
             tooltip: 'Edit Profil',
           ),
@@ -224,10 +243,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   gradient: AppTheme.primaryGradient,
                   borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    // Avatar with initials
                     CircleAvatar(
                       radius: 48,
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
@@ -236,31 +261,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 32,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Nama
                     Text(
                       user?.name ?? 'Siswa',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Email
                     Text(
                       user?.email ?? '',
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Badge role
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 6),
@@ -279,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -295,9 +317,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +335,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       'Informasi Siswa',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A2E),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -350,9 +380,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +398,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       'Statistik Belajar',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A2E),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -411,9 +449,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,13 +467,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       'Pengaturan',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A2E),
                       ),
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
-                      title: const Text('Notifikasi'),
-                      subtitle: const Text('Terima notifikasi ujian'),
+                      title: const Text('Notifikasi',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text('Terima notifikasi ujian',
+                          style: TextStyle(color: Colors.grey[600])),
                       value: _notifications,
                       onChanged: (value) {
                         setState(() => _notifications = value);
@@ -438,25 +486,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.info_outline,
-                          color: AppTheme.textSecondary),
-                      title: const Text('Versi Aplikasi'),
+                      leading: Icon(Icons.info_outline,
+                          color: Colors.grey[600]),
+                      title: const Text('Versi Aplikasi',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
                       trailing: Text(
                         AppConstants.appVersion,
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w500,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       contentPadding: EdgeInsets.zero,
                     ),
                     const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.privacy_tip_outlined,
-                          color: AppTheme.textSecondary),
-                      title: const Text('Kebijakan Privasi'),
-                      trailing: const Icon(Icons.chevron_right,
-                          color: AppTheme.textHint),
+                      leading: Icon(Icons.privacy_tip_outlined,
+                          color: Colors.grey[600]),
+                      title: const Text('Kebijakan Privasi',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      trailing: Icon(Icons.chevron_right,
+                          color: Colors.grey[400]),
                       contentPadding: EdgeInsets.zero,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -467,11 +517,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.help_outline,
-                          color: AppTheme.textSecondary),
-                      title: const Text('Bantuan'),
-                      trailing: const Icon(Icons.chevron_right,
-                          color: AppTheme.textHint),
+                      leading: Icon(Icons.help_outline,
+                          color: Colors.grey[600]),
+                      title: const Text('Bantuan',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      trailing: Icon(Icons.chevron_right,
+                          color: Colors.grey[400]),
                       contentPadding: EdgeInsets.zero,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -521,13 +572,14 @@ class _ProfileInfoRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppTheme.textSecondary),
+          Icon(icon, size: 20, color: Colors.grey[600]),
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: Colors.grey[600],
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const Spacer(),
@@ -535,8 +587,9 @@ class _ProfileInfoRow extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
                 fontSize: 14,
+                color: Color(0xFF1A1A2E),
               ),
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
@@ -574,23 +627,23 @@ class _StatItem extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 8),
             Text(
               value,
               style: TextStyle(
                 color: color,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppTheme.textSecondary,
-                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),

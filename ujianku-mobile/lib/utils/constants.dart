@@ -65,11 +65,11 @@ class AppConstants {
   static const int tokenLength = 6;
 
   // === Rute ===
+  // Catatan: Aplikasi mobile hanya mendukung role Siswa dan Pengawas.
+  // Admin dan Guru harus login melalui website UjianKu.
 
   static const String routeSplash = '/';
   static const String routeLogin = '/login';
-  static const String routeAdminHome = '/admin';
-  static const String routeGuruHome = '/guru';
   static const String routeSiswaHome = '/siswa';
   static const String routePengawasHome = '/pengawas';
 }

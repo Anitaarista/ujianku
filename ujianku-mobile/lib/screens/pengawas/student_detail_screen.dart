@@ -8,7 +8,7 @@ import '../../models/violation.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 
-/// Halaman detail siswa dalam sesi pengawasan — data real dari API
+/// Halaman detail siswa — PRO-MAX UI/UX
 class StudentDetailScreen extends StatefulWidget {
   final String sessionId;
   final String studentId;
@@ -61,11 +61,20 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final proctorProvider = context.watch<ProctorProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Detail Siswa'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text(
+          'Detail Siswa',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: Colors.grey[700]),
             onPressed: _loadData,
             tooltip: 'Refresh',
           ),
@@ -87,12 +96,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
             const SizedBox(height: 16),
             Text(
               proctorProvider.error ?? 'Gagal memuat data siswa',
-              style:
-                  const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              style: TextStyle(
+                  color: Colors.grey[700], fontSize: 14, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -117,7 +126,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Kartu info siswa ──
+          // Kartu info siswa
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -128,10 +137,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               children: [
-                // Avatar
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white.withValues(alpha: 0.15),
@@ -139,7 +154,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                     Helpers.getInitials(student.studentName),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       fontSize: 24,
                     ),
                   ),
@@ -150,12 +165,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                // Status badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -179,15 +193,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         _getStatusLabel(student),
                         style: TextStyle(
                           color: statusColor,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Violation count
-                if (student.violationCount > 0)
+                if (student.violationCount > 0) ...[
+                  const SizedBox(height: 8),
                   Text(
                     '${student.violationCount} pelanggaran tercatat',
                     style: TextStyle(
@@ -195,33 +208,44 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                       fontSize: 13,
                     ),
                   ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-          // ── Status koneksi & progress ──
+          // Status koneksi & progress
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.border),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Status & Progress',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: Color(0xFF1A1A2E)),
                 ),
                 const SizedBox(height: 14),
-                // Connection status
                 Row(
                   children: [
                     Icon(
-                      student.connectionStatus == StudentConnectionStatus.active
+                      student.connectionStatus ==
+                              StudentConnectionStatus.active
                           ? Icons.wifi
                           : student.connectionStatus ==
                                   StudentConnectionStatus.idle
@@ -242,29 +266,32 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                                   StudentConnectionStatus.idle
                               ? 'Idle'
                               : 'Terputus',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A2E)),
                     ),
                     const Spacer(),
                     Text(
                       'Aktivitas terakhir: ${student.lastActivity != null ? Helpers.timeAgo(student.lastActivity!) : '-'}',
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
+                      style: TextStyle(
+                          color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Progress
                 Row(
                   children: [
                     const Icon(Icons.assignment,
                         color: AppTheme.primary, size: 20),
                     const SizedBox(width: 8),
-                    const Text('Progress'),
+                    const Text('Progress',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
                     const Spacer(),
                     Text(
                       '${(student.progressPercentage * 100).toInt()}%',
                       style: const TextStyle(
                         color: AppTheme.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
                         fontSize: 13,
                       ),
                     ),
@@ -276,7 +303,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   child: LinearProgressIndicator(
                     value: student.progressPercentage,
                     minHeight: 8,
-                    backgroundColor: AppTheme.border,
+                    backgroundColor: Colors.grey[200],
                     valueColor:
                         const AlwaysStoppedAnimation<Color>(AppTheme.primary),
                   ),
@@ -286,18 +313,21 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── Riwayat pelanggaran ──
+          // Riwayat pelanggaran
           Row(
             children: [
               const Text(
                 'Riwayat Pelanggaran',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E)),
               ),
               const Spacer(),
               if (violations.isNotEmpty)
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppTheme.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
@@ -307,7 +337,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                     style: const TextStyle(
                       color: AppTheme.error,
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -325,18 +355,18 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 border: Border.all(
                     color: AppTheme.success.withValues(alpha: 0.2)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline,
+                  const Icon(Icons.check_circle_outline,
                       color: AppTheme.success, size: 24),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Tidak ada pelanggaran. Siswa mengerjakan ujian dengan jujur.',
                       style: TextStyle(
                           color: AppTheme.success,
                           fontSize: 13,
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -347,10 +377,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
           const SizedBox(height: 32),
 
-          // ── Tindakan pengawas ──
+          // Tindakan pengawas
           const Text(
             'Tindakan',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E)),
           ),
           const SizedBox(height: 12),
           Row(
@@ -446,24 +479,29 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.block, color: AppTheme.error, size: 24),
+            Icon(Icons.block, color: Colors.red[700], size: 24),
             const SizedBox(width: 8),
-            const Text('Diskualifikasi Siswa?'),
+            const Text('Diskualifikasi Siswa?',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Text(
+        content: Text(
           'Tindakan ini tidak dapat dibatalkan. Siswa akan dikeluarkan dari ujian.',
+          style: TextStyle(color: Colors.grey[700]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal',
+                style: TextStyle(
+                    color: Colors.grey[600], fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Diskualifikasi'),
+            child: const Text('Diskualifikasi',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -524,20 +562,26 @@ class _ViolationHistoryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: severityColor.withValues(alpha: 0.06),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: severityColor.withValues(alpha: 0.25),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          // Icon
           Container(
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: severityColor.withValues(alpha: 0.12),
+              color: severityColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
@@ -548,8 +592,6 @@ class _ViolationHistoryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -559,14 +601,15 @@ class _ViolationHistoryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         violation.typeLabel,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: severityColor.withValues(alpha: 0.15),
+                        color: severityColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -574,7 +617,7 @@ class _ViolationHistoryCard extends StatelessWidget {
                         style: TextStyle(
                           color: severityColor,
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -583,20 +626,18 @@ class _ViolationHistoryCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   violation.description,
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12),
+                  style: TextStyle(
+                      color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w400),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-
-          // Time
           const SizedBox(width: 8),
           Text(
             violation.timeFormatted,
-            style: const TextStyle(color: AppTheme.textHint, fontSize: 12),
+            style: TextStyle(color: Colors.grey[500], fontSize: 12),
           ),
         ],
       ),
