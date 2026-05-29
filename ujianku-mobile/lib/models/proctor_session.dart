@@ -40,6 +40,9 @@ class ProctorSession {
     return (activeStudents / totalStudents) * 100;
   }
 
+  /// Durasi sesi dalam menit
+  int get duration => endTime.difference(startTime).inMinutes;
+
   /// Durasi tersisa
   Duration get remainingTime {
     if (!isActive) return Duration.zero;

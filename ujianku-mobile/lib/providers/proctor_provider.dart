@@ -14,6 +14,8 @@ class ProctorProvider with ChangeNotifier {
   List<Violation> _violations = [];
   List<Violation> _recentViolations = [];
   Map<String, dynamic>? _report;
+  StudentSessionStatus? _studentDetail;
+  List<Violation> _studentViolations = [];
   bool _isLoading = false;
   bool _isMonitoring = false;
   String? _error;
@@ -31,6 +33,8 @@ class ProctorProvider with ChangeNotifier {
   List<Violation> get violations => _violations;
   List<Violation> get recentViolations => _recentViolations;
   Map<String, dynamic>? get report => _report;
+  StudentSessionStatus? get studentDetail => _studentDetail;
+  List<Violation> get studentViolations => _studentViolations;
   bool get isLoading => _isLoading;
   bool get isMonitoring => _isMonitoring;
   String? get error => _error;
@@ -109,6 +113,34 @@ class ProctorProvider with ChangeNotifier {
     _isMonitoring = false;
     _monitoringTimer?.cancel();
     _monitoringTimer = null;
+    notifyListeners();
+  }
+
+  /// Mendapatkan detail siswa dalam sesi
+  Future<void> getStudentDetail({
+    required String sessionId,
+    required String studentId,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _proctorService.getStudentDetail(
+        sessionId: sessionId,
+        studentId: studentId,
+      );
+      if (result.success) {
+        _studentDetail = result.studentStatus;
+        _studentViolations = result.violations;
+      } else {
+        _error = result.message;
+      }
+    } catch (e) {
+      _error = 'Gagal memuat detail siswa: ${e.toString()}';
+    }
+
+    _isLoading = false;
     notifyListeners();
   }
 

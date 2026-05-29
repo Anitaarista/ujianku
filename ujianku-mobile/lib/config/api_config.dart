@@ -30,6 +30,16 @@ class ApiConfig {
   static String proctorMonitor(String id) => '/proctor/sessions/$id/monitor';
   static String proctorEndSession(String sessionId) =>
       '/proctor/sessions/$sessionId/end';
+  static String proctorStudentDetail(String sessionId, String studentId) =>
+      '/proctor/sessions/$sessionId/students/$studentId';
+  static String proctorWarnStudent(String sessionId, String studentId) =>
+      '/proctor/sessions/$sessionId/students/$studentId/warn';
+  static String proctorDisqualifyStudent(String sessionId, String studentId) =>
+      '/proctor/sessions/$sessionId/students/$studentId/disqualify';
+  static String proctorAllowStudent(String sessionId, String studentId) =>
+      '/proctor/sessions/$sessionId/students/$studentId/allow';
+  static String proctorReport(String sessionId) =>
+      '/proctor/sessions/$sessionId/report';
   static const String proctorViolations = '/proctor/violations';
 
   /// Endpoint siswa

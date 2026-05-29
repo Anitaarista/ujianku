@@ -82,7 +82,7 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.monitor_off, size: 64, color: AppTheme.textHint),
+              const Icon(Icons.link_off, size: 64, color: AppTheme.textHint),
               const SizedBox(height: 16),
               const Text(
                 'Tidak ada sesi untuk dimonitor',

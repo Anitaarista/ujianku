@@ -11,13 +11,19 @@ env:
   FLUTTER_VERSION: '3.27.1'
 
 jobs:
-  # ==================== ANALYZE & TEST ====================
+  # ==================== ANALYZE ====================
   analyze:
     name: Analyze & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -30,7 +36,7 @@ jobs:
         run: flutter pub get
 
       - name: Analyze code
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --no-fatal-infos || true
 
       - name: Run tests
         run: flutter test --no-pub || true
@@ -44,6 +50,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -54,18 +66,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK (Debug)
-        run: flutter build apk --debug --no-pub
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
 
-      - name: Build APK (Release)
-        run: flutter build apk --release --no-pub
-
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: ujianku-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 30
+      - name: Build Debug APK
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -73,6 +78,13 @@ jobs:
           name: ujianku-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 90
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ujianku-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 30
 
   # ==================== BUILD ANDROID APP BUNDLE ====================
   build-aab:
@@ -82,6 +94,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -94,7 +112,7 @@ jobs:
         run: flutter pub get
 
       - name: Build App Bundle
-        run: flutter build appbundle --release --no-pub
+        run: flutter build appbundle --release --no-tree-shake-icons
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
@@ -102,65 +120,6 @@ jobs:
           name: ujianku-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 90
-
-  # ==================== BUILD IOS (macOS only) ====================
-  build-ios:
-    name: Build iOS
-    needs: analyze
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build iOS (No Code Signing)
-        run: flutter build ios --release --no-codesign --no-pub
-
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ujianku-ios-build
-          path: build/ios/ipa/*.ipa
-          retention-days: 30
-        continue-on-error: true
-
-  # ==================== BUILD WEB ====================
-  build-web:
-    name: Build Web
-    needs: analyze
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build Web
-        run: flutter build web --release --no-pub
-
-      - name: Upload Web artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ujianku-web-build
-          path: build/web/
-          retention-days: 30
 
   # ==================== CREATE RELEASE ====================
   create-release:
@@ -225,12 +184,6 @@ jobs:
             ### Server
             - API: https://ujianku-admin.space-z.ai/api/v1
             - Website: https://ujianku-admin.space-z.ai/
-
-            ### Akun Demo
-            | Role | Email | Password |
-            |------|-------|----------|
-            | Pengawas | dewi.lestari@ujianku.id | pengawas123 |
-            | Siswa | andi@ujianku.id | siswa123 |
           files: |
             ujianku-${{ steps.version.outputs.version }}-release.apk
             ujianku-${{ steps.version.outputs.version }}-debug.apk

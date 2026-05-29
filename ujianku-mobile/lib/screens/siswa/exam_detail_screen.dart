@@ -52,7 +52,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : exam == null
               ? _buildErrorState(examProvider.error)
-              : _buildContent(exam),
+              : _buildContent(exam, examProvider),
     );
   }
 
@@ -82,7 +82,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     );
   }
 
-  Widget _buildContent(dynamic exam) {
+  Widget _buildContent(dynamic exam, ExamProvider examProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(

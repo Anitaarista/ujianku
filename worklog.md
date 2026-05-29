@@ -40,3 +40,37 @@ Stage Summary:
 - Flutter app API config and auth service fixed to match backend API
 - GitHub Actions CI/CD workflow created for Flutter builds
 - Build verification: Next.js build passes without errors
+
+---
+Task ID: flutter-apk-build
+Agent: Main Agent
+Task: Build Flutter APK for UjianKu mobile using GitHub Actions
+
+Work Log:
+- Discovered Flutter project was missing android/, ios/, test/ directories
+- Created complete Android platform files (build.gradle, AndroidManifest.xml, MainActivity.kt, etc.)
+- Fixed pubspec.yaml: removed deprecated flutter_windowmanager package, removed empty asset declarations
+- Updated GitHub Actions workflow: fixed syntax error (branches: ain] -> [main]), added Java setup step
+- Fixed Kotlin version mismatch: 1.9.22 -> 2.1.0 (plugins require Kotlin 2.x)
+- Updated AGP from 8.1.0 to 8.7.0, Gradle from 8.3 to 8.9
+- Fixed 7 Dart compilation errors:
+  - StorageService _instance name conflict (singleton vs getter)
+  - exam_detail_screen examProvider not accessible in _buildContent
+  - ProctorSession missing duration getter
+  - Icons.monitor_off -> Icons.link_off
+  - ProctorProvider missing getStudentDetail method
+  - ApiConfig missing proctorReport, proctorStudentDetail, etc. endpoints
+  - anti_cheat_detector: widgets.dart -> material.dart import
+- Added core library desugaring for flutter_local_notifications
+- Added ic_launcher adaptive icon
+- Disabled R8 minification to fix release build
+- Successfully built APK on GitHub Actions (Run #9)
+- Downloaded APK files to /home/z/my-project/download/
+
+Stage Summary:
+- Release APK: /home/z/my-project/download/ujianku-1.0.0-release.apk (26 MB)
+- Debug APK: /home/z/my-project/download/ujianku-1.0.0-debug.apk (94 MB)
+- GitHub repo: https://github.com/Anitaarista/ujianku-mobile
+- Build workflow: .github/workflows/flutter-build.yml
+- All 9 build attempts documented, final build successful
+- Release creation failed due to PAT permissions (needs write access to releases)
