@@ -3,10 +3,10 @@ class User {
   final String id;
   final String name;
   final String email;
-  final String role; // 'siswa' atau 'pengawas'
+  final String role; // 'admin', 'guru', 'siswa', atau 'pengawas'
   final String? avatar;
   final String? nisn; // Nomor Induk Siswa Nasional (untuk siswa)
-  final String? nip; // Nomor Induk Pegawai (untuk pengawas)
+  final String? nip; // Nomor Induk Pegawai (untuk pengawas/guru)
   final String? className; // Kelas (untuk siswa)
   final String? school;
   final DateTime? createdAt;
@@ -23,6 +23,12 @@ class User {
     this.school,
     this.createdAt,
   });
+
+  /// Apakah pengguna adalah admin
+  bool get isAdmin => role == 'admin';
+
+  /// Apakah pengguna adalah guru
+  bool get isGuru => role == 'guru';
 
   /// Apakah pengguna adalah siswa
   bool get isSiswa => role == 'siswa';

@@ -1,76 +1,100 @@
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix and enhance UjianKu web and mobile application
+# UjianKu Mobile - Siswa Screens Enhancement Worklog
 
-Work Log:
-- Verified Next.js build succeeds without errors
-- Verified Prisma schema is in sync with SQLite database
-- Seeded database with demo data successfully (16 users, 3 schools, 5 subjects, 30 questions, 3 exams)
-- Tested login API endpoint - works correctly with admin and guru credentials
-- Removed demo quick login buttons from login page (page.tsx)
-- Removed SISWA/PENGAWAS mobile preview components from web app
-- Changed View type from 'login' | 'ADMIN' | 'GURU' | 'SISWA' | 'PENGAWAS' to 'login' | 'ADMIN' | 'GURU'
-- Rewrote Admin Dashboard to use real API data with useEffect, useState, loading states
-- Rewrote Guru Dashboard to use real API data with useEffect, useState, loading states
-- Added apiFetch helper function for authenticated API calls
-- Added Add User modal with POST to API
-- Added Delete User and Toggle Active functionality
-- Added real data fetching for Sekolah & Kelas, Mata Pelajaran sections
-- Fixed admin analytics endpoint to return both nested and flat format
-- Fixed admin mata-pelajaran endpoint to include guruSubjects relation
-- Fixed admin sekolah endpoint to include kelas count and totalSiswa
-- Fixed Flutter API config - removed non-existent endpoints (logout, profile, refresh)
-- Added correct endpoints (me, register, siswaExams, siswaResults, siswaProfile, guruExams, etc.)
-- Fixed duplicate proctorMonitor method in API config
-- Fixed Flutter auth service to not send role field in login (API determines role from user record)
-- Fixed Flutter auth service to use /auth/me instead of /auth/profile
-- Fixed Flutter auth service logout to only clear local storage (no API logout endpoint)
-- Fixed Flutter API response handler to check data['success'] field and read error messages from data['error']['message']
-- Added clearUser() method to AuthProvider for role validation
-- Updated Flutter login screen to validate role (reject ADMIN/GURU on mobile)
-- Created missing asset directories (assets/images, assets/animations)
-- Created GitHub Actions workflow for Flutter CI/CD (.github/workflows/build-flutter.yml)
+## Date: 2026-03-04
 
-Stage Summary:
-- Web app now uses real API data instead of mock data
-- Login page no longer has demo quick login buttons
-- SISWA/PENGAWAS are web-only mobile previews removed (they use Flutter app)
-- All API endpoints verified working
-- Flutter app API config and auth service fixed to match backend API
-- GitHub Actions CI/CD workflow created for Flutter builds
-- Build verification: Next.js build passes without errors
+## Summary
+Enhanced all 6 Siswa screens with full API integration, real data binding, and improved UI/UX.
 
----
-Task ID: flutter-apk-build
-Agent: Main Agent
-Task: Build Flutter APK for UjianKu mobile using GitHub Actions
+## Files Modified
+All files are in `/home/z/my-project/ujianku-mobile/lib/screens/siswa/`
 
-Work Log:
-- Discovered Flutter project was missing android/, ios/, test/ directories
-- Created complete Android platform files (build.gradle, AndroidManifest.xml, MainActivity.kt, etc.)
-- Fixed pubspec.yaml: removed deprecated flutter_windowmanager package, removed empty asset declarations
-- Updated GitHub Actions workflow: fixed syntax error (branches: ain] -> [main]), added Java setup step
-- Fixed Kotlin version mismatch: 1.9.22 -> 2.1.0 (plugins require Kotlin 2.x)
-- Updated AGP from 8.1.0 to 8.7.0, Gradle from 8.3 to 8.9
-- Fixed 7 Dart compilation errors:
-  - StorageService _instance name conflict (singleton vs getter)
-  - exam_detail_screen examProvider not accessible in _buildContent
-  - ProctorSession missing duration getter
-  - Icons.monitor_off -> Icons.link_off
-  - ProctorProvider missing getStudentDetail method
-  - ApiConfig missing proctorReport, proctorStudentDetail, etc. endpoints
-  - anti_cheat_detector: widgets.dart -> material.dart import
-- Added core library desugaring for flutter_local_notifications
-- Added ic_launcher adaptive icon
-- Disabled R8 minification to fix release build
-- Successfully built APK on GitHub Actions (Run #9)
-- Downloaded APK files to /home/z/my-project/download/
+### 1. home_screen.dart
+**Changes:**
+- Added direct API integration via `ApiService` to fetch results from `/siswa/results` endpoint
+- Replaced placeholder stats (avgScore=0, rank='-') with real computed stats from API data
+- Stats cards now show: Ujian Mendatang (from ExamProvider), Ujian Selesai (from API), Rata-rata Nilai (computed from API)
+- Added Quick Actions section with 3 buttons: Lihat Ujian, Hasil Terakhir, Profil
+- Enhanced upcoming exam cards with action buttons (Mulai Ujian / Lihat Detail)
+- Recent Results section now uses `ExamResult` model with score color indicators
+- Pull-to-refresh refreshes both exams and results data
+- Removed unused imports
 
-Stage Summary:
-- Release APK: /home/z/my-project/download/ujianku-1.0.0-release.apk (26 MB)
-- Debug APK: /home/z/my-project/download/ujianku-1.0.0-debug.apk (94 MB)
-- GitHub repo: https://github.com/Anitaarista/ujianku-mobile
-- Build workflow: .github/workflows/flutter-build.yml
-- All 9 build attempts documented, final build successful
-- Release creation failed due to PAT permissions (needs write access to releases)
+### 2. exam_list_screen.dart
+**Changes:**
+- Replaced system SearchDelegate with inline search bar in AppBar (better UX)
+- Search filters by title, subject, and teacher name
+- Added error state banner with retry button
+- Added empty state for search results ("Ujian tidak ditemukan")
+- Improved loading state (only shows spinner on initial load, not on filter change)
+- Cleaned up unused imports
+
+### 3. exam_detail_screen.dart
+**Changes:**
+- Added `flutter/services.dart` import for Clipboard functionality
+- Implemented `_pasteFromClipboard()` method for token input
+- Added description display in the main header card
+- Wrapped info section in a styled Container card for better visual hierarchy
+- Added "Jawaban tersimpan otomatis" and "Soal acak" rules
+- Enhanced checkbox styling with dynamic border color
+- Added conditional "Kembali ke Beranda" button when exam is not startable
+- Better status messaging in start button
+- Reset current exam state when navigating back
+
+### 4. exam_take_screen.dart
+**Changes:**
+- Added `PageController` for programmatic page navigation
+- Question navigation now animates (slide transition) between questions
+- Added "Soal X dari Y" indicator with question type badge
+- Fixed question navigation drawer to sync with page controller
+- Added "Kumpulkan Ujian" button in the navigation drawer
+- Better question type display in the question indicator area
+- Removed unused `Helpers` import
+
+### 5. exam_result_screen.dart
+**Changes:**
+- Added full question review functionality (`_buildQuestionReview`)
+- Toggle between Summary view and Review Soal view via AppBar action
+- Each review card shows: question number, question text, your answer, correct answer, explanation
+- Color-coded review cards (green for correct, red for wrong, gray for unanswered)
+- Added explanation/pembahasan section in review cards
+- Enhanced time display with hours/minutes/seconds breakdown
+- Added completion date display
+- Added Grade row in score breakdown
+- Review Soal button at bottom of summary view
+
+### 6. profile_screen.dart
+**Changes:**
+- Added real API stats loading from `/siswa/results` endpoint
+- Stats now show: Ujian Selesai, Rata-rata, Nilai Tertinggi (all from real data)
+- Added edit profile dialog with name, NISN, and school fields
+- Edit calls `AuthProvider.updateProfile()` which hits `PUT /siswa/profile`
+- Added pull-to-refresh for profile data
+- Class name shown in badge instead of just "Siswa"
+- Added App Version info row (from AppConstants)
+- Added Privacy Policy and Help links (placeholder)
+- Removed dark mode toggle (not implemented in app)
+- Added loading state for stats section
+- Better stat item styling with borders
+
+## Import Fixes Applied
+- `home_screen.dart`: Added `../../config/api_config.dart`, removed unused `flutter/services.dart` and `utils/constants.dart`
+- `exam_list_screen.dart`: Removed unused `../../utils/helpers.dart`
+- `exam_take_screen.dart`: Removed unused `../../utils/helpers.dart`
+- `profile_screen.dart`: Added `../../config/api_config.dart`
+
+## API Endpoints Used
+- `GET /siswa/results` - Fetch all exam results (used in home, profile)
+- `GET /siswa/exams` - Fetch exam list (via ExamProvider)
+- `GET /exams/[id]` - Fetch exam detail (via ExamProvider)
+- `POST /exams/[id]/start` - Start exam (via ExamProvider)
+- `POST /exams/[id]/answer` - Submit answer (via ExamProvider)
+- `POST /exams/[id]/submit` - Submit exam (via ExamProvider)
+- `GET /exams/[id]/result` - Get exam result (via ExamProvider)
+- `PUT /siswa/profile` - Update profile (via AuthProvider)
+
+## Notes
+- No files outside `/screens/siswa/` were modified
+- All API calls use existing services (ExamService, AuthService, ApiService)
+- ExamProvider and AuthProvider are used via Provider pattern
+- Results data is fetched directly via ApiService in screens that need it (home, profile)
+  since ExamProvider doesn't have a "loadAllResults" method and we can't modify providers

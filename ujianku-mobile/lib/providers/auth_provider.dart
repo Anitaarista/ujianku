@@ -12,22 +12,12 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isLoggedIn = false;
   String? _error;
-  String _selectedRole = 'siswa';
 
   // Getter
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
   String? get error => _error;
-  String get selectedRole => _selectedRole;
-  bool get isSiswa => _user?.isSiswa ?? _selectedRole == 'siswa';
-  bool get isPengawas => _user?.isPengawas ?? _selectedRole == 'pengawas';
-
-  /// Mengatur role yang dipilih di halaman login
-  void setSelectedRole(String role) {
-    _selectedRole = role;
-    notifyListeners();
-  }
 
   /// Cek status autentikasi saat aplikasi dimulai
   Future<void> checkAuth() async {
@@ -38,8 +28,6 @@ class AuthProvider with ChangeNotifier {
       final loggedIn = await _authService.isLoggedIn();
       if (loggedIn) {
         _user = await _authService.getCurrentUser();
-        final role = await _storage.getRole();
-        if (role != null) _selectedRole = role;
         _isLoggedIn = _user != null;
       } else {
         _isLoggedIn = false;
@@ -72,7 +60,6 @@ class AuthProvider with ChangeNotifier {
       if (result.success) {
         _user = result.user;
         _isLoggedIn = true;
-        _selectedRole = result.user?.role ?? _selectedRole;
         _isLoading = false;
         notifyListeners();
         return true;

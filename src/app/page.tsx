@@ -1,15 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GraduationCap, Shield, BookOpen, Eye, Lock, Mail, ArrowRight, Loader2, AlertCircle, Smartphone } from 'lucide-react'
+import { GraduationCap, Shield, BookOpen, Eye, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AdminDashboard } from '@/components/ujianku/admin-dashboard'
 import { GuruDashboard } from '@/components/ujianku/guru-dashboard'
+import { SiswaDashboard } from '@/components/ujianku/siswa-dashboard'
+import { PengawasDashboard } from '@/components/ujianku/pengawas-dashboard'
 
-type View = 'login' | 'ADMIN' | 'GURU'
+type View = 'login' | 'ADMIN' | 'GURU' | 'PENGAWAS' | 'SISWA'
 
 interface LoginUser {
   id: string
@@ -21,22 +23,62 @@ interface LoginUser {
 
 const API_BASE = '/api/v1'
 
+const STORAGE_KEY_TOKEN = 'ujianku_token'
+const STORAGE_KEY_USER = 'ujianku_user'
+
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('login')
   const [currentUser, setCurrentUser] = useState<LoginUser | null>(null)
   const [authToken, setAuthToken] = useState<string | null>(null)
+  const [initializing, setInitializing] = useState(true)
+
+  // On mount, check localStorage for existing session
+  useEffect(() => {
+    try {
+      const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN)
+      const storedUser = localStorage.getItem(STORAGE_KEY_USER)
+      if (storedToken && storedUser) {
+        const user = JSON.parse(storedUser) as LoginUser
+        setAuthToken(storedToken)
+        setCurrentUser(user)
+        setCurrentView(user.role as View)
+      }
+    } catch {
+      // Invalid stored data, clear it
+      localStorage.removeItem(STORAGE_KEY_TOKEN)
+      localStorage.removeItem(STORAGE_KEY_USER)
+    } finally {
+      setInitializing(false)
+    }
+  }, [])
 
   const handleLogin = async (user: LoginUser, token: string) => {
+    // Persist to localStorage
+    localStorage.setItem(STORAGE_KEY_TOKEN, token)
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user))
+
     setCurrentUser(user)
     setAuthToken(token)
-    const role = user.role as 'ADMIN' | 'GURU'
-    setCurrentView(role)
+    setCurrentView(user.role as View)
   }
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEY_TOKEN)
+    localStorage.removeItem(STORAGE_KEY_USER)
+
     setCurrentUser(null)
     setAuthToken(null)
     setCurrentView('login')
+  }
+
+  // Show nothing while initializing from localStorage
+  if (initializing) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    )
   }
 
   return (
@@ -76,6 +118,30 @@ export default function Home() {
           <GuruDashboard onBack={handleLogout} user={currentUser} token={authToken} />
         </motion.div>
       )}
+
+      {currentView === 'PENGAWAS' && currentUser && (
+        <motion.div
+          key="pengawas"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <PengawasDashboard onBack={handleLogout} user={currentUser} token={authToken} />
+        </motion.div>
+      )}
+
+      {currentView === 'SISWA' && currentUser && (
+        <motion.div
+          key="siswa"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <SiswaDashboard onBack={handleLogout} user={currentUser} token={authToken} />
+        </motion.div>
+      )}
     </AnimatePresence>
   )
 }
@@ -104,14 +170,6 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
 
       if (data.success) {
         const { token, user } = data.data
-
-        // Web only allows Admin & Guru
-        if (user.role === 'PENGAWAS' || user.role === 'SISWA') {
-          setError(`${user.role === 'PENGAWAS' ? 'Pengawas' : 'Siswa'} harus login melalui aplikasi mobile UjianKu. Silakan download di Play Store atau App Store.`)
-          setLoading(false)
-          return
-        }
-
         onLogin(user, token)
       } else {
         setError(data.error?.message || 'Login gagal. Periksa email dan password Anda.')
@@ -161,12 +219,12 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
 
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
               <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">UjianKu</span>
-              {' '}Panel<br />
-              <span className="text-gray-600">Admin & Guru</span>
+              <br />
+              <span className="text-gray-600">Platform Ujian Online</span>
             </h1>
 
             <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-              Kelola ujian, bank soal, dan pantau hasil siswa dari satu dashboard terpadu. 
+              Kelola ujian, kerjakan soal, dan pantau hasil dari satu dashboard terpadu.
               Platform aman dengan proctoring berbasis AI.
             </p>
 
@@ -202,7 +260,7 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
                     <GraduationCap className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">Masuk ke UjianKu</h2>
-                  <p className="text-sm text-gray-500 mt-1">Panel Admin & Guru</p>
+                  <p className="text-sm text-gray-500 mt-1">Masukkan kredensial Anda untuk melanjutkan</p>
                 </div>
 
                 {/* Error Message */}
@@ -266,20 +324,6 @@ function LoginPage({ onLogin }: { onLogin: (user: LoginUser, token: string) => v
                     )}
                   </Button>
                 </form>
-
-                {/* Mobile App Notice */}
-                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="flex items-start gap-2">
-                    <Smartphone className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-800">Pengawas & Siswa</p>
-                      <p className="text-xs text-amber-700 mt-0.5">
-                        Login untuk Pengawas dan Siswa hanya tersedia di aplikasi mobile UjianKu. 
-                        Download di Play Store atau App Store.
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </motion.div>

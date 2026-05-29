@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
+import '../../models/answer.dart';
 import '../../providers/exam_provider.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/custom_button.dart';
@@ -20,6 +21,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scoreAnimation;
+  bool _showReview = false;
 
   @override
   void initState() {
@@ -60,12 +62,28 @@ class _ExamResultScreenState extends State<ExamResultScreen>
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/siswa'),
         ),
+        actions: [
+          if (result != null && result.answerReviews != null)
+            TextButton.icon(
+              onPressed: () {
+                setState(() => _showReview = !_showReview);
+              },
+              icon: Icon(
+                _showReview ? Icons.bar_chart : Icons.quiz_outlined,
+                size: 18,
+              ),
+              label: Text(_showReview ? 'Ringkasan' : 'Review Soal'),
+            ),
+        ],
       ),
       body: examProvider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary))
           : result == null
               ? _buildError(examProvider.error)
-              : _buildResult(result),
+              : _showReview
+                  ? _buildQuestionReview(result)
+                  : _buildResult(result),
     );
   }
 
@@ -87,7 +105,8 @@ class _ExamResultScreenState extends State<ExamResultScreen>
             CustomButton(
               text: 'Coba Lagi',
               variant: CustomButtonVariant.outline,
-              onPressed: () => context.read<ExamProvider>().loadExamResult(widget.examId),
+              onPressed: () =>
+                  context.read<ExamProvider>().loadExamResult(widget.examId),
             ),
           ],
         ),
@@ -95,7 +114,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
     );
   }
 
-  Widget _buildResult(dynamic result) {
+  Widget _buildResult(ExamResult result) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -114,7 +133,8 @@ class _ExamResultScreenState extends State<ExamResultScreen>
             decoration: BoxDecoration(
               color: Color(result.passColor).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Color(result.passColor).withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: Color(result.passColor).withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -207,6 +227,14 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                   icon: Icons.percent,
                   isPercentage: true,
                 ),
+                const SizedBox(height: 8),
+                _ScoreRow(
+                  label: 'Grade',
+                  score: null,
+                  icon: Icons.grade,
+                  isBold: true,
+                  gradeLabel: result.grade.isNotEmpty ? result.grade : Helpers.getGradeLabel(result.totalScore),
+                ),
               ],
             ),
           ),
@@ -237,7 +265,7 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                         ),
                       ),
                       Text(
-                        Helpers.formatDuration(result.timeTaken.inMinutes),
+                        _formatTimeTaken(result.timeTaken),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -246,9 +274,54 @@ class _ExamResultScreenState extends State<ExamResultScreen>
                     ],
                   ),
                 ),
+                if (result.completedAt != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'Diselesaikan',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        Helpers.formatDateTime(result.completedAt!),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
+
+          // Review button
+          if (result.answerReviews != null &&
+              result.answerReviews!.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  setState(() => _showReview = true);
+                },
+                icon: const Icon(Icons.quiz_outlined),
+                label: const Text('Review Jawaban'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primary,
+                  side: const BorderSide(color: AppTheme.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 32),
 
           // Tombol kembali
@@ -264,11 +337,244 @@ class _ExamResultScreenState extends State<ExamResultScreen>
       ),
     );
   }
+
+  Widget _buildQuestionReview(ExamResult result) {
+    final reviews = result.answerReviews ?? [];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: reviews.length,
+      itemBuilder: (context, index) {
+        final review = reviews[index];
+        final isCorrect = review.isCorrect;
+        final wasAnswered = review.selectedOption != null;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isCorrect
+                  ? AppTheme.success.withValues(alpha: 0.3)
+                  : wasAnswered
+                      ? AppTheme.error.withValues(alpha: 0.3)
+                      : AppTheme.border,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with status
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isCorrect
+                      ? AppTheme.success.withValues(alpha: 0.05)
+                      : wasAnswered
+                          ? AppTheme.error.withValues(alpha: 0.05)
+                          : AppTheme.background,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(14),
+                    topRight: Radius.circular(14),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Soal ${review.questionNumber}',
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      isCorrect
+                          ? Icons.check_circle
+                          : wasAnswered
+                              ? Icons.cancel
+                              : Icons.help_outline,
+                      color: isCorrect
+                          ? AppTheme.success
+                          : wasAnswered
+                              ? AppTheme.error
+                              : AppTheme.textHint,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isCorrect
+                          ? 'Benar'
+                          : wasAnswered
+                              ? 'Salah'
+                              : 'Tidak Dijawab',
+                      style: TextStyle(
+                        color: isCorrect
+                            ? AppTheme.success
+                            : wasAnswered
+                                ? AppTheme.error
+                                : AppTheme.textHint,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Question text
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.questionText,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Answer details
+                    if (review.selectedOption != null) ...[
+                      _ReviewAnswerRow(
+                        label: 'Jawaban Anda',
+                        value: review.selectedOption!,
+                        color: isCorrect ? AppTheme.success : AppTheme.error,
+                      ),
+                    ],
+                    if (!isCorrect || review.selectedOption == null) ...[
+                      _ReviewAnswerRow(
+                        label: 'Jawaban Benar',
+                        value: review.correctOption,
+                        color: AppTheme.success,
+                      ),
+                    ],
+                    if (review.explanation != null &&
+                        review.explanation!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.lightbulb_outline,
+                                    size: 16, color: AppTheme.accent),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Pembahasan',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                    color: AppTheme.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              review.explanation!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTimeTaken(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+
+    if (hours > 0) {
+      return '$hours jam $minutes menit $seconds detik';
+    }
+    if (minutes > 0) {
+      return '$minutes menit $seconds detik';
+    }
+    return '$seconds detik';
+  }
+}
+
+/// Review answer row
+class _ReviewAnswerRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _ReviewAnswerRow({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Kartu skor utama dengan animasi
 class _ScoreCard extends StatelessWidget {
-  final dynamic result;
+  final ExamResult result;
   final Animation<double> scoreAnimation;
 
   const _ScoreCard({required this.result, required this.scoreAnimation});
@@ -329,7 +635,8 @@ class _ScoreCard extends StatelessWidget {
                       value: (result.percentage / 100) * scoreAnimation.value,
                       strokeWidth: 12,
                       backgroundColor: scoreColor.withValues(alpha: 0.1),
-                      valueColor: AlwaysStoppedAnimation<Color>(scoreColor),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(scoreColor),
                     ),
                     Center(
                       child: Column(
@@ -345,7 +652,9 @@ class _ScoreCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            Helpers.getGradeLabel(result.totalScore),
+                            result.grade.isNotEmpty
+                                ? result.grade
+                                : Helpers.getGradeLabel(result.totalScore),
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -418,17 +727,19 @@ class _StatBox extends StatelessWidget {
 /// Baris skor
 class _ScoreRow extends StatelessWidget {
   final String label;
-  final double score;
+  final double? score;
   final IconData icon;
   final bool isBold;
   final bool isPercentage;
+  final String? gradeLabel;
 
   const _ScoreRow({
     required this.label,
-    required this.score,
+    this.score,
     required this.icon,
     this.isBold = false,
     this.isPercentage = false,
+    this.gradeLabel,
   });
 
   @override
@@ -447,7 +758,10 @@ class _ScoreRow extends StatelessWidget {
           ),
         ),
         Text(
-          isPercentage ? '${score.toStringAsFixed(1)}%' : score.toStringAsFixed(1),
+          gradeLabel ??
+              (isPercentage
+                  ? '${score!.toStringAsFixed(1)}%'
+                  : score!.toStringAsFixed(1)),
           style: TextStyle(
             fontSize: 16,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,

@@ -16,6 +16,9 @@ class ExamListScreen extends StatefulWidget {
 
 class _ExamListScreenState extends State<ExamListScreen> {
   ExamFilter _currentFilter = ExamFilter.all;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  bool _showSearch = false;
 
   @override
   void initState() {
@@ -26,20 +29,57 @@ class _ExamListScreenState extends State<ExamListScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Exam> _filterExams(List<Exam> exams) {
+    var filtered = exams;
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      filtered = filtered
+          .where((e) =>
+              e.title.toLowerCase().contains(query) ||
+              e.subject.toLowerCase().contains(query) ||
+              (e.teacherName?.toLowerCase().contains(query) ?? false))
+          .toList();
+    }
+    return filtered;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final examProvider = context.watch<ExamProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Ujian'),
+        title: _showSearch
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Cari ujian...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: AppTheme.textHint),
+                ),
+                style: const TextStyle(fontSize: 16),
+                onChanged: (value) {
+                  setState(() => _searchQuery = value);
+                },
+              )
+            : const Text('Daftar Ujian'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(_showSearch ? Icons.close : Icons.search),
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: _ExamSearchDelegate(exams: examProvider.exams),
-              );
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchQuery = '';
+                  _searchController.clear();
+                }
+              });
             },
           ),
         ],
@@ -55,22 +95,54 @@ class _ExamListScreenState extends State<ExamListScreen> {
             },
           ),
 
+          // Error state
+          if (examProvider.error != null && !examProvider.isLoading)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: AppTheme.error, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      examProvider.error!,
+                      style: const TextStyle(color: AppTheme.error, fontSize: 13),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => context.read<ExamProvider>().loadExams(),
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            ),
+
           // Daftar ujian
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => context.read<ExamProvider>().loadExams(),
               color: AppTheme.primary,
-              child: examProvider.isLoading
+              child: examProvider.isLoading && examProvider.exams.isEmpty
                   ? const Center(
                       child: CircularProgressIndicator(color: AppTheme.primary),
                     )
-                  : examProvider.exams.isEmpty
-                      ? _EmptyExamList(filter: _currentFilter)
+                  : _filterExams(examProvider.exams).isEmpty
+                      ? _EmptyExamList(
+                          filter: _currentFilter,
+                          isSearch: _searchQuery.isNotEmpty,
+                        )
                       : ListView.builder(
                           padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                          itemCount: examProvider.exams.length,
+                          itemCount: _filterExams(examProvider.exams).length,
                           itemBuilder: (context, index) {
-                            final exam = examProvider.exams[index];
+                            final exam =
+                                _filterExams(examProvider.exams)[index];
                             return ExamCard(
                               exam: exam,
                               onTap: () =>
@@ -133,10 +205,34 @@ class _FilterTabs extends StatelessWidget {
 /// State kosong untuk daftar ujian
 class _EmptyExamList extends StatelessWidget {
   final ExamFilter filter;
-  const _EmptyExamList({required this.filter});
+  final bool isSearch;
+  const _EmptyExamList({required this.filter, this.isSearch = false});
 
   @override
   Widget build(BuildContext context) {
+    if (isSearch) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.search_off, size: 64, color: AppTheme.textHint),
+              const SizedBox(height: 16),
+              Text(
+                'Ujian tidak ditemukan',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     String message;
     IconData icon;
 
@@ -178,75 +274,5 @@ class _EmptyExamList extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-/// Delegate pencarian ujian
-class _ExamSearchDelegate extends SearchDelegate {
-  final List<Exam> exams;
-
-  _ExamSearchDelegate({required this.exams});
-
-  @override
-  String get searchFieldLabel => 'Cari ujian...';
-
-  @override
-  TextStyle get searchFieldStyle => const TextStyle(fontSize: 16);
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    final results = exams
-        .where((e) =>
-            e.title.toLowerCase().contains(query.toLowerCase()) ||
-            e.subject.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    if (results.isEmpty) {
-      return Center(
-        child: Text(
-          'Tidak ditemukan ujian "$query"',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final exam = results[index];
-        return ExamCard(
-          exam: exam,
-          onTap: () {
-            close(context, null);
-            context.push('/siswa/exams/${exam.id}');
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return buildResults(context);
   }
 }

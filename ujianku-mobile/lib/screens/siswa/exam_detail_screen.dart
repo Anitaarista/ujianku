@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
@@ -35,6 +36,14 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     super.dispose();
   }
 
+  Future<void> _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    if (clipboardData?.text != null && mounted) {
+      _tokenController.text = clipboardData!.text!.toUpperCase();
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final examProvider = context.watch<ExamProvider>();
@@ -45,11 +54,15 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
         title: const Text('Detail Ujian'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            examProvider.resetCurrentExam();
+            context.pop();
+          },
         ),
       ),
       body: examProvider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary))
           : exam == null
               ? _buildErrorState(examProvider.error)
               : _buildContent(exam, examProvider),
@@ -74,7 +87,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             CustomButton(
               text: 'Coba Lagi',
               variant: CustomButtonVariant.outline,
-              onPressed: () => context.read<ExamProvider>().loadExamDetail(widget.examId),
+              onPressed: () =>
+                  context.read<ExamProvider>().loadExamDetail(widget.examId),
             ),
           ],
         ),
@@ -99,20 +113,50 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    exam.statusLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        exam.statusLabel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
+                    const Spacer(),
+                    if (exam.requiresToken)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.vpn_key, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              'Token',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -131,51 +175,100 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                     fontSize: 16,
                   ),
                 ),
+                if (exam.description != null &&
+                    exam.description!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      exam.description!,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          // Info detail
-          _InfoRow(
-            icon: Icons.calendar_today_outlined,
-            label: 'Tanggal',
-            value: Helpers.formatDateTime(exam.startTime),
+          // Info detail section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Informasi Ujian',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _InfoRow(
+                  icon: Icons.calendar_today_outlined,
+                  label: 'Tanggal Mulai',
+                  value: Helpers.formatDateTime(exam.startTime),
+                ),
+                _InfoRow(
+                  icon: Icons.event_available_outlined,
+                  label: 'Tanggal Selesai',
+                  value: Helpers.formatDateTime(exam.endTime),
+                ),
+                _InfoRow(
+                  icon: Icons.timer_outlined,
+                  label: 'Durasi',
+                  value: exam.durationFormatted,
+                ),
+                _InfoRow(
+                  icon: Icons.quiz_outlined,
+                  label: 'Total Soal',
+                  value: '${exam.totalQuestions} soal',
+                ),
+                if (exam.totalPg > 0)
+                  _InfoRow(
+                    icon: Icons.list_alt,
+                    label: 'Pilihan Ganda',
+                    value: '${exam.totalPg} soal',
+                  ),
+                if (exam.totalEssay > 0)
+                  _InfoRow(
+                    icon: Icons.edit_note,
+                    label: 'Esai',
+                    value: '${exam.totalEssay} soal',
+                  ),
+                if (exam.teacherName != null)
+                  _InfoRow(
+                    icon: Icons.person_outline,
+                    label: 'Guru',
+                    value: exam.teacherName!,
+                  ),
+                if (exam.className != null)
+                  _InfoRow(
+                    icon: Icons.class_outlined,
+                    label: 'Kelas',
+                    value: exam.className!,
+                  ),
+              ],
+            ),
           ),
-          _InfoRow(
-            icon: Icons.timer_outlined,
-            label: 'Durasi',
-            value: exam.durationFormatted,
-          ),
-          _InfoRow(
-            icon: Icons.quiz_outlined,
-            label: 'Total Soal',
-            value: '${exam.totalQuestions} soal',
-          ),
-          if (exam.totalPg > 0)
-            _InfoRow(
-              icon: Icons.list_alt,
-              label: 'Pilihan Ganda',
-              value: '${exam.totalPg} soal',
-            ),
-          if (exam.totalEssay > 0)
-            _InfoRow(
-              icon: Icons.edit_note,
-              label: 'Esai',
-              value: '${exam.totalEssay} soal',
-            ),
-          if (exam.teacherName != null)
-            _InfoRow(
-              icon: Icons.person_outline,
-              label: 'Guru',
-              value: exam.teacherName!,
-            ),
-          if (exam.className != null)
-            _InfoRow(
-              icon: Icons.class_outlined,
-              label: 'Kelas',
-              value: exam.className!,
-            ),
 
           // Countdown jika ujian berlangsung
           if (exam.isOngoing) ...[
@@ -193,7 +286,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
           const SizedBox(height: 24),
 
           // Petunjuk ujian
-          if (exam.instructions != null && exam.instructions!.isNotEmpty) ...[
+          if (exam.instructions != null &&
+              exam.instructions!.isNotEmpty) ...[
             const Text(
               'Petunjuk Ujian',
               style: TextStyle(
@@ -232,7 +326,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.warning_amber, color: Color(0xFFd97706), size: 20),
+                    Icon(Icons.warning_amber,
+                        color: Color(0xFFd97706), size: 20),
                     SizedBox(width: 8),
                     Text(
                       'Peraturan Ujian',
@@ -249,6 +344,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                 _RuleItem('Tidak diperbolehkan mengambil screenshot'),
                 _RuleItem('Pelanggaran 3x akan mengakibatkan diskualifikasi'),
                 _RuleItem('Waktu ujian akan terus berjalan meskipun aplikasi ditutup'),
+                _RuleItem('Soal akan ditampilkan dalam urutan acak'),
+                _RuleItem('Jawaban akan tersimpan otomatis saat berpindah soal'),
               ],
             ),
           ),
@@ -264,6 +361,14 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            const Text(
+              'Masukkan token yang diberikan oleh pengawas untuk memulai ujian.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _tokenController,
               decoration: InputDecoration(
@@ -271,41 +376,66 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                 prefixIcon: const Icon(Icons.vpn_key_outlined),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.paste),
-                  onPressed: () async {
-                    // TODO: paste from clipboard
-                  },
+                  onPressed: _pasteFromClipboard,
+                  tooltip: 'Tempel dari clipboard',
                 ),
               ),
               textCapitalization: TextCapitalization.characters,
               maxLength: 6,
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
           ],
 
           // Checkbox persetujuan
-          CheckboxListTile(
-            value: _agreedToRules,
-            onChanged: (value) {
-              setState(() => _agreedToRules = value ?? false);
-            },
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Saya memahami dan setuju dengan peraturan ujian',
-              style: TextStyle(fontSize: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _agreedToRules
+                  ? AppTheme.primary.withValues(alpha: 0.05)
+                  : AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _agreedToRules
+                    ? AppTheme.primary.withValues(alpha: 0.3)
+                    : AppTheme.border,
+              ),
+            ),
+            child: CheckboxListTile(
+              value: _agreedToRules,
+              onChanged: (value) {
+                setState(() => _agreedToRules = value ?? false);
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              title: const Text(
+                'Saya memahami dan setuju dengan peraturan ujian',
+                style: TextStyle(fontSize: 14),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Tombol mulai ujian
           CustomButton(
-            text: 'Mulai Ujian',
-            icon: Icons.play_arrow,
+            text: exam.isOngoing ? 'Mulai Ujian' : 'Ujian Belum Dimulai',
+            icon: exam.isOngoing ? Icons.play_arrow : Icons.schedule,
             isFullWidth: true,
             size: CustomButtonSize.large,
             isLoading: examProvider.isLoading,
             onPressed: _canStartExam(exam) ? () => _startExam(exam) : null,
           ),
+          if (!exam.isOngoing && !exam.isUpcoming) ...[
+            const SizedBox(height: 12),
+            CustomButton(
+              text: 'Kembali ke Beranda',
+              icon: Icons.home,
+              variant: CustomButtonVariant.outline,
+              isFullWidth: true,
+              onPressed: () => context.go('/siswa'),
+            ),
+          ],
           const SizedBox(height: 40),
         ],
       ),
@@ -332,7 +462,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<ExamProvider>().error ?? 'Gagal memulai ujian'),
+          content:
+              Text(context.read<ExamProvider>().error ?? 'Gagal memulai ujian'),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -368,11 +499,15 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -393,7 +528,9 @@ class _RuleItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('•  ', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFd97706))),
+          const Text('•  ',
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, color: Color(0xFFd97706))),
           Expanded(
             child: Text(
               text,

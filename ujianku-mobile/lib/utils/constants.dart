@@ -68,7 +68,8 @@ class AppConstants {
 
   static const String routeSplash = '/';
   static const String routeLogin = '/login';
-  static const String routeRoleSelector = '/role-selector';
+  static const String routeAdminHome = '/admin';
+  static const String routeGuruHome = '/guru';
   static const String routeSiswaHome = '/siswa';
   static const String routePengawasHome = '/pengawas';
 }

@@ -37,7 +37,21 @@ class _UjianKuAppState extends State<UjianKuApp> {
 
     String initialLocation;
     if (isLoggedIn && role != null) {
-      initialLocation = role == 'pengawas' ? '/pengawas' : '/siswa';
+      switch (role.toLowerCase()) {
+        case 'admin':
+          initialLocation = '/admin';
+          break;
+        case 'guru':
+          initialLocation = '/guru';
+          break;
+        case 'pengawas':
+          initialLocation = '/pengawas';
+          break;
+        case 'siswa':
+        default:
+          initialLocation = '/siswa';
+          break;
+      }
     } else {
       initialLocation = '/';
     }

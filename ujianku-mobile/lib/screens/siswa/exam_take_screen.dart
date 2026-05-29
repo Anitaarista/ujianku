@@ -7,7 +7,6 @@ import '../../providers/exam_provider.dart';
 import '../../utils/anti_cheat_detector.dart';
 import '../../widgets/question_widget.dart';
 import '../../widgets/countdown_timer.dart';
-import '../../utils/helpers.dart';
 
 /// Halaman pengerjaan ujian (layar penuh, anti-cheat)
 class ExamTakeScreen extends StatefulWidget {
@@ -24,10 +23,12 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
   int _remainingSeconds = 0;
   int _totalSeconds = 0;
   bool _isSubmitting = false;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     // Mencegah kembali (will be handled by pop scope)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<ExamProvider>();
@@ -39,6 +40,12 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         _startCountdown();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _startCountdown() {
@@ -59,6 +66,7 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
   }
 
   Future<void> _autoSubmit() async {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Waktu ujian habis! Ujian dikumpulkan otomatis.'),
@@ -83,7 +91,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<ExamProvider>().error ?? 'Gagal mengumpulkan ujian'),
+          content: Text(context.read<ExamProvider>().error ??
+              'Gagal mengumpulkan ujian'),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -94,19 +103,27 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
     final provider = context.read<ExamProvider>();
     final unanswered = provider.unansweredCount;
     final flagged = provider.flaggedCount;
+    final total = provider.questions.length;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Kumpulkan Ujian?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Pastikan semua jawaban sudah benar sebelum mengumpulkan.'),
+            const Text(
+                'Pastikan semua jawaban sudah benar sebelum mengumpulkan.'),
             const SizedBox(height: 16),
+            _SubmitInfoRow(
+              icon: Icons.check_circle_outline,
+              color: AppTheme.success,
+              text: '${provider.answeredCount} dari $total soal dijawab',
+            ),
             if (unanswered > 0)
               _SubmitInfoRow(
                 icon: Icons.help_outline,
@@ -119,11 +136,6 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
                 color: AppTheme.accent,
                 text: '$flagged soal ditandai untuk ditinjau',
               ),
-            _SubmitInfoRow(
-              icon: Icons.check_circle_outline,
-              color: AppTheme.success,
-              text: '${provider.answeredCount} soal sudah dijawab',
-            ),
           ],
         ),
         actions: [
@@ -149,6 +161,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
     final examProvider = context.watch<ExamProvider>();
     final exam = examProvider.currentExam;
     final currentQuestion = examProvider.currentQuestion;
+    final questions = examProvider.questions;
+    final currentIndex = examProvider.currentQuestionIndex;
 
     return PopScope(
       canPop: false,
@@ -162,7 +176,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         onMaxViolationsReached: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Anda didiskualifikasi karena terlalu banyak pelanggaran!'),
+              content: Text(
+                  'Anda didiskualifikasi karena terlalu banyak pelanggaran!'),
               backgroundColor: AppTheme.error,
               duration: Duration(seconds: 5),
             ),
@@ -172,18 +187,26 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         child: Scaffold(
           key: _scaffoldKey,
           endDrawer: _QuestionNavigationDrawer(
-            questions: examProvider.questions,
-            currentIndex: examProvider.currentQuestionIndex,
+            questions: questions,
+            currentIndex: currentIndex,
             onQuestionTap: (index) {
               examProvider.goToQuestion(index);
+              _pageController.jumpToPage(index);
               _scaffoldKey.currentState?.closeEndDrawer();
             },
           ),
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            title: Text(
-              exam?.title ?? 'Ujian',
-              style: const TextStyle(fontSize: 16),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    exam?.title ?? 'Ujian',
+                    style: const TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
             actions: [
               // Countdown timer
@@ -195,12 +218,13 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
               // Tombol navigasi soal
               IconButton(
                 icon: const Icon(Icons.grid_view),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+                onPressed: () =>
+                    _scaffoldKey.currentState?.openEndDrawer(),
                 tooltip: 'Navigasi Soal',
               ),
             ],
           ),
-          body: examProvider.questions.isEmpty
+          body: questions.isEmpty
               ? const Center(
                   child: CircularProgressIndicator(color: AppTheme.primary),
                 )
@@ -209,22 +233,60 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
                     // Progress bar
                     _ProgressBar(
                       answered: examProvider.answeredCount,
-                      total: examProvider.questions.length,
+                      total: questions.length,
+                      currentIndex: currentIndex,
+                    ),
+
+                    // Pertanyaan indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Soal ${currentIndex + 1} dari ${questions.length}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          if (currentQuestion != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: currentQuestion.isEssay
+                                    ? const Color(0xFFfef3c7)
+                                    : const Color(0xFFdbeafe),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                currentQuestion.isEssay
+                                    ? 'Esai'
+                                    : 'Pilihan Ganda',
+                                style: TextStyle(
+                                  color: currentQuestion.isEssay
+                                      ? const Color(0xFFd97706)
+                                      : const Color(0xFF2563eb),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
 
                     // Pertanyaan
                     Expanded(
                       child: PageView.builder(
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: examProvider.questions.length,
-                        controller: PageController(
-                          initialPage: examProvider.currentQuestionIndex,
-                        ),
-                        onPageChanged: (index) {
-                          // Tidak digunakan karena NeverScrollable
-                        },
+                        itemCount: questions.length,
+                        controller: _pageController,
                         itemBuilder: (context, index) {
-                          final question = examProvider.questions[index];
+                          final question = questions[index];
                           return QuestionWidget(
                             question: question,
                             selectedAnswer: question.selectedAnswer,
@@ -242,11 +304,23 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
 
                     // Navigasi bawah
                     _BottomNavigation(
-                      currentIndex: examProvider.currentQuestionIndex,
-                      totalQuestions: examProvider.questions.length,
+                      currentIndex: currentIndex,
+                      totalQuestions: questions.length,
                       isFlagged: currentQuestion?.isFlagged ?? false,
-                      onPrevious: examProvider.previousQuestion,
-                      onNext: examProvider.nextQuestion,
+                      onPrevious: () {
+                        examProvider.previousQuestion();
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      onNext: () {
+                        examProvider.nextQuestion();
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
                       onFlag: examProvider.toggleFlag,
                       onSubmit: _showSubmitConfirmation,
                       isSubmitting: _isSubmitting,
@@ -263,7 +337,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
             Icon(Icons.warning_amber, color: AppTheme.warning),
@@ -278,7 +353,8 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
             child: const Text('Kembali ke Ujian'),
           ),
         ],
@@ -291,8 +367,13 @@ class _ExamTakeScreenState extends State<ExamTakeScreen> {
 class _ProgressBar extends StatelessWidget {
   final int answered;
   final int total;
+  final int currentIndex;
 
-  const _ProgressBar({required this.answered, required this.total});
+  const _ProgressBar({
+    required this.answered,
+    required this.total,
+    required this.currentIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -329,7 +410,8 @@ class _ProgressBar extends StatelessWidget {
               value: progress,
               minHeight: 6,
               backgroundColor: AppTheme.border,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppTheme.primary),
             ),
           ),
         ],
@@ -412,7 +494,8 @@ class _BottomNavigation extends StatelessWidget {
               onPressed: isSubmitting ? null : onSubmit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -476,13 +559,19 @@ class _QuestionNavigationDrawer extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _NavStat(label: 'Dijawab', value: '$answered', color: AppTheme.success),
+                      _NavStat(
+                          label: 'Dijawab',
+                          value: '$answered',
+                          color: AppTheme.success),
                       const SizedBox(width: 16),
-                      _NavStat(label: 'Ditandai', value: '$flagged', color: AppTheme.accent),
+                      _NavStat(
+                          label: 'Ditandai',
+                          value: '$flagged',
+                          color: AppTheme.accent),
                       const SizedBox(width: 16),
                       _NavStat(
                         label: 'Belum',
-                        value: '${questions.length - answered - flagged}',
+                        value: '${questions.length - answered}',
                         color: AppTheme.textHint,
                       ),
                     ],
@@ -555,6 +644,35 @@ class _QuestionNavigationDrawer extends StatelessWidget {
               ),
             ),
 
+            // Tombol kumpulkan di drawer
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Access parent state to show submit confirmation
+                    final state =
+                        context.findAncestorStateOfType<_ExamTakeScreenState>();
+                    state?._showSubmitConfirmation();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Kumpulkan Ujian',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
+                ),
+              ),
+            ),
+
             // Legenda
             Container(
               padding: const EdgeInsets.all(16),
@@ -583,14 +701,19 @@ class _NavStat extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _NavStat({required this.label, required this.value, required this.color});
+  const _NavStat(
+      {required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18)),
         Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
@@ -631,7 +754,8 @@ class _SubmitInfoRow extends StatelessWidget {
   final Color color;
   final String text;
 
-  const _SubmitInfoRow({required this.icon, required this.color, required this.text});
+  const _SubmitInfoRow(
+      {required this.icon, required this.color, required this.text});
 
   @override
   Widget build(BuildContext context) {

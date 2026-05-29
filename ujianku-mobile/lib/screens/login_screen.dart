@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 import '../utils/helpers.dart';
 import '../widgets/custom_button.dart';
 
-/// Halaman login untuk Siswa dan Pengawas
+/// Halaman login universal untuk semua role
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,7 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  String _selectedRole = 'siswa';
 
   @override
   void dispose() {
@@ -116,53 +115,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Silakan masuk dengan akun Anda',
+                        'Selamat datang kembali!',
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Pilih role
-                      const Text(
-                        'Masuk Sebagai',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _RoleCard(
-                              icon: Icons.school_outlined,
-                              label: 'Siswa',
-                              subtitle: 'Mengerjakan ujian',
-                              isSelected: _selectedRole == 'siswa',
-                              onTap: () {
-                                setState(() => _selectedRole = 'siswa');
-                                context.read<AuthProvider>().setSelectedRole('siswa');
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _RoleCard(
-                              icon: Icons.shield_outlined,
-                              label: 'Pengawas',
-                              subtitle: 'Mengawasi ujian',
-                              isSelected: _selectedRole == 'pengawas',
-                              onTap: () {
-                                setState(() => _selectedRole = 'pengawas');
-                                context.read<AuthProvider>().setSelectedRole('pengawas');
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
 
                       // Email field
                       TextFormField(
@@ -311,91 +270,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       final user = context.read<AuthProvider>().user;
-      final userRole = user?.role.toUpperCase() ?? '';
-      
-      // Validasi: hanya SISWA dan PENGAWAS yang bisa login di mobile
-      if (userRole == 'ADMIN' || userRole == 'GURU') {
-        context.read<AuthProvider>().clearUser();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${userRole == 'ADMIN' ? 'Admin' : 'Guru'} harus login melalui website UjianKu.',
-            ),
-            backgroundColor: AppTheme.error,
-          ),
-        );
-        return;
-      }
-      
+      final userRole = user?.role.toLowerCase() ?? '';
+
       // Route berdasarkan role dari API
-      if (userRole == 'PENGAWAS') {
-        context.go('/pengawas');
-      } else {
-        context.go('/siswa');
+      switch (userRole) {
+        case 'admin':
+          context.go('/admin');
+          break;
+        case 'guru':
+          context.go('/guru');
+          break;
+        case 'pengawas':
+          context.go('/pengawas');
+          break;
+        case 'siswa':
+        default:
+          context.go('/siswa');
+          break;
       }
     }
-  }
-}
-
-/// Kartu pemilihan role
-class _RoleCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _RoleCard({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primary.withValues(alpha: 0.08)
-              : AppTheme.background,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? AppTheme.primary : AppTheme.border,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppTheme.primary : AppTheme.textHint,
-              size: 28,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 11,
-                color: AppTheme.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
